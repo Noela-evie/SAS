@@ -79,7 +79,7 @@ const AuthContextProvider = ({ children }) => {
     setRole(role);
     setIsAuthenticated(true);
     console.log("Registration successful. Redirecting to dashboard...");
-    navigate("/dashboard");
+    navigate("/auth/login");
   } catch (error) {
     console.error("Registration error:", error);
   }

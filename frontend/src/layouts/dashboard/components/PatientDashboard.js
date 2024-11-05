@@ -1,283 +1,160 @@
-import React, { useState, useEffect } from "react";
-// @mui material components
-import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
-import MDSnackbar from "components/MDSnackbar";
-// Material Dashboard 2 React example components
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import React from 'react'
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const PatientDashboard = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [reason, setReason] = useState("");
-  const [department, setDepartment] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [successSB, setSuccessSB] = useState(false);
-  const [errorSB, setErrorSB] = useState(false);
-  const [doctors, setDoctors] = useState([]);
-  const [bookedAppointments, setBookedAppointments] = useState([]);
+  const [department, setDepartment] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [reason, setReason] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [cancelledAppointments, setCancelledAppointments] = useState([]);
+
+  const handleDepartmentChange = (event) => setDepartment(event.target.value);
+  const handleDateChange = (event) => setDate(event.target.value);
+  const handleTimeChange = (event) => setTime(event.target.value);
+  const handleReasonChange = (event) => setReason(event.target.value);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // Submit handler logic will go here
+    console.log('Form submitted:', { department, date, time, reason });
+  };
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await fetch("/doctors");
-        const data = await response.json();
-        setDoctors(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchDoctors();
+    const userId = localStorage.getItem('id');
+    axios.get(`/appointments?user._id=${userId}`)
+      .then(response => {
+        const upcomingAppointments = response.data.filter(appointment => appointment.status === 'upcoming');
+        setUpcomingAppointments(upcomingAppointments);
+      })
+      .catch(error => console.error(error));
   }, []);
 
   useEffect(() => {
-    const fetchBookedAppointments = async () => {
-      try {
-        const response = await fetch("/appointments/booked");
-        const data = await response.json();
-        setBookedAppointments(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchBookedAppointments();
+    const userId = localStorage.getItem('id');
+    axios.get(`/appointments?user._id=${userId}`)
+      .then(response => {
+        const cancelledAppointments = response.data.filter(appointment => appointment.status === 'cancelled');
+        setCancelledAppointments(cancelledAppointments);
+      })
+      .catch(error => console.error(error));
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("/appointments/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          reason,
-          department,
-          date,
-          time,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setSuccessSB(true);
-      } else {
-        setErrorSB(true);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleCancel = async (appointmentId) => {
-    try {
-      const response = await fetch(`/appointments/cancel/${appointmentId}`, {
-        method: "PATCH",
-      });
-      const data = await response.json();
-      if (data.success) {
-        setBookedAppointments((prevAppointments) =>
-          prevAppointments.filter((appointment) => appointment._id !== appointmentId)
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
-    <DashboardLayout>
-      <DashboardNavbar />
-      <MDBox mt={6} mb={3}>
-        <Grid container spacing={3} justifyContent="center">
-          <Grid item xs={12} lg={8}>
-            <Card>
-              <MDBox p={2}>
-                <MDTypography variant="h5">Book an Appointment</MDTypography>
-              </MDBox>
-              <MDBox pt={2} px={2}>
-                <form onSubmit={handleSubmit}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <MDTypography variant="button" color="text" fontWeight="regular">
-                        Name
-                      </MDTypography>
-                      <MDBox mb={2}>
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Name"
-                          style={{ width: "100%", padding: "10px" }}
-                        />
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <MDTypography variant="button" color="text" fontWeight="regular">
-                        Email
-                      </MDTypography>
-                      <MDBox mb={2}>
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Email"
-                          style={{ width: "100%", padding: "10px" }}
-                        />
-                     <Grid item xs={12} sm={6}>
-  <MDTypography variant="button" color="text" fontWeight="regular">
-    Phone
-  </MDTypography>
-  <MDBox mb={2}>
-    <input
-      type="tel"
-      value={phone}
-      onChange={(e) => setPhone(e.target.value)}
-      placeholder="Phone"
-      style={{ width: "100%", padding: "10px" }}
-    />
-  </MDBox>
-</Grid>
-<Grid item xs={12} sm={6}>
-  <MDTypography variant="button" color="text" fontWeight="regular">
-    Reason
-  </MDTypography>
-  <MDBox mb={2}>
-    <textarea
-      value={reason}
-      onChange={(e) => setReason(e.target.value)}
-      placeholder="Reason"
-      style={{ width: "100%", padding: "10px", resize: "none" }}
-      rows="4"
-    />
-  </MDBox>
-</Grid>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <MDTypography variant="button" color="text" fontWeight="regular">
-                        Department
-                      </MDTypography>
-                      <MDBox mb={2}>
-                        <select
-                          value={department}
-                          onChange={(e) => setDepartment(e.target.value)}
-                          style={{ width: "100%", padding: "10px" }}
-                        >
-                          <option value="">Select Department</option>
-                          {doctors.map((department) => (
-                            <option key={department._id} value={department.name}>
-                              {department.name}
-                            </option>
-                          ))}
-                        </select>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <MDTypography variant="button" color="text" fontWeight="regular">
-                        Date(Cannot be a weekend)
-                      </MDTypography>
-                      <MDBox mb={2}>
-                        <input
-                          type="date"
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                          style={{ width: "100%", padding: "10px" }}
-                        />
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <MDTypography variant="button" color="text" fontWeight="regular">
-                        Time
-                      </MDTypography>
-                      <MDBox mb={2}>
-                        <select
-                          value={time}
-                          onChange={(e) => setTime(e.target.value)}
-                          style={{ width: "100%", padding: "10px" }}
-                        >
-                          <option value="">Select Time</option>
-                          <option value="8-10am">8am-10am</option>
-                          <option value="10am-1pm">10am-1pm</option>
-                          <option value="2-4pm">2pm-4pm</option>
-                        </select>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <MDButton type="submit" variant="gradient" color="success">
-                        Book Appointment
-                      </MDButton>
-                    </Grid>
-                  </Grid>
-                </form>
-              </MDBox>
-            </Card>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} justifyContent="center">
-          <Grid item xs={12} lg={8}>
-            <Card>
-              <MDBox p={2}>
-                <MDTypography variant="h5">Booked Appointments</MDTypography>
-              </MDBox>
-              <MDBox pt={2} px={2}>
-                {bookedAppointments.map((appointment) => (
-                  <div key={appointment._id}>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      {appointment.doctor.name} - {appointment.date} - {appointment.time}
-                    </MDTypography>
-                    {new Date(appointment.date) > new Date() && (
-                      <MDButton
-                        variant="gradient"
-                        color="error"
-                        onClick={() => handleCancel(appointment._id)}
-                      >
-                        Cancel
-                      </MDButton>
-                    )}
-                  </div>
-                ))}
-              </MDBox>
-            </Card>
-          </Grid>
-        </Grid>
-      </MDBox>
-      {successSB && (
-        <MDSnackbar
-          color="success"
-          icon="check"
-          title="Appointment Booked"
-          content="Your appointment has been booked successfully"
-          dateTime="now"
-          open={successSB}
-          onClose={() => setSuccessSB(false)}
-          close={() => setSuccessSB(false)}
-          bgWhite
-        />
+    <div className="container">
+      <div className="left-container">
+          <div className="card-header">Book an Appointment</div>
+          <div className="card-body">
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="department">Department</label>
+                <select
+                  id="department"
+                  className="form-select"
+                  value={department}
+                  onChange={handleDepartmentChange}
+                >
+                  <option value="">Select Department</option>
+                  <option value="General Medicine">General Medicine</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Pediatrics">Pediatrics</option>
+                  <option value="Dermatology">Dermatology</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="date">Date (Cannot be a weekend)</label>
+                <input
+                  type="date"
+                  id="date"
+                  className="form-control"
+                  value={date}
+                  onChange={handleDateChange}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="time">Time</label>
+                <select
+                  id="time"
+                  className="form-select"
+                  value={time}
+                  onChange={handleTimeChange}
+                >
+                  <option value="">Select Time</option>
+                  <option value="8:00-10:00 AM">8:00-10:00 AM</option>
+                  <option value="10:00 AM-1:00 PM">10:00 AM-1:00 PM</option>
+                  <option value="2:00-4:00 PM">2:00-4:00 PM</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reason">Reason for Appointment</label>
+                <textarea
+                  id="reason"
+                  rows={4}
+                  className="form-control"
+                  value={reason}
+                  onChange={handleReasonChange}
+                />
+              </div>
+              <button type="submit" className="btn">Book Appointment</button>
+            </form>
+          </div>
+    
+      </div>
+      <div className="right-container">
+        <div className="card">
+          <div className="card-header">Upcoming Appointments</div>
+          <div className="card-body">
+            {upcomingAppointments.length === 0 ? (
+              <p>No upcoming appointments</p>
+            ) : (
+              upcomingAppointments.map(appointment => (
+                <div key={appointment._id} className="mb-4">
+                  <p className="fw-bold">Date: {appointment.date}</p>
+                  <p className="fw-bold">Time: {appointment.time}</p>
+                  <p className="fw-bold">Department: {appointment.department}</p>
+                  <p className="fw-bold">Status: {appointment.status}</p>
+                  <hr />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header">Cancelled Appointments</div>
+          <div className="card-body">
+            {cancelledAppointments.length === 0 ? (
+              <p>No cancelled appointments</p>
+            ) : (
+              cancelledAppointments.map(appointment => (
+                <div key={appointment._id} className="mb-4">
+                  <p className="fw-bold">Date: {appointment.date}</p>
+                  <p className="fw-bold">Time: {appointment.time}</p>
+                  <p className="fw-bold">Department: {appointment.department}</p>
+                  <p className="fw-bold">Status: {appointment.status}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+      {success && (
+        <div className="alert alert-success">
+          <strong>Success!</strong> Appointment booked successfully!
+        </div>
       )}
-      {errorSB && (
-        <MDSnackbar
-          color="error"
-          icon="warning"
-          title="Error"
-          content="This time slot is unavailable, please choose a different day or time"
-          dateTime="now"
-          open={errorSB}
-          onClose={() => setErrorSB(false)}
-          close={() => setErrorSB(false)}
-          bgWhite
-        />
+      {error && (
+        <div className="alert alert-danger">
+          <strong>Error!</strong> Error booking appointment.
+        </div>
       )}
-    </DashboardLayout>
+    </div>
   );
 };
 
 export default PatientDashboard;
+
+

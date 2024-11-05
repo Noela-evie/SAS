@@ -31,19 +31,19 @@ export const postAppointmentRouteHandler = async (req, res) => {
   };
   
   // 3. Get all appointments for a given doctor or patient
-  export const getAppointmentsRouteHandler = async (req, res) => {
-    try {
-      const doctorId = req.query.doctorId;
-      const patientId = req.query.patientId;
-      const appointments = await appointmentModel.find({
-        $or: [{ doctor: doctorId }, { patient: patientId }],
-      });
-      res.json(appointments);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+export const getAppointmentsRouteHandler = async (req, res) => {
+  try {
+    const doctorId = req.query.doctor?._id;
+    const patientId = req.query.user?._id;
+    const appointments = await appointmentModel.find({
+      $or: [{ doctor: doctorId }, { patient: patientId }],
+    });
+    res.json(appointments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
   
   // 4. Get all appointments
   export const getAllAppointmentsRouteHandler = async (req, res) => {
