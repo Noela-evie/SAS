@@ -9,9 +9,9 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 
 // Dashboard role-based components
-import DoctorDashboard from "layouts/dashboard/components/DoctorDashboard";
+import LecturerDashboard from "layouts/dashboard/components/LecturerDashboard";
 import AdminDashboard from "layouts/dashboard/components/AdminDashboard";
-import PatientDashboard from "layouts/dashboard/components/PatientDashboard";
+import StudentDashboard from "layouts/dashboard/components/StudentDashboard";
 
 // Import the useAuth hook to access the user role
 import { useAuth } from "context/index"; 
@@ -21,9 +21,9 @@ function Dashboard() {
 
   // Render specific dashboard based on role
   const renderDashboard = () => {
-    if (role === "doctor") return <DoctorDashboard />;
+    if (role === "lecturer") return <LecturerDashboard />;
     if (role === "admin") return <AdminDashboard />;
-    if (role === "patient") return <PatientDashboard />;
+    if (role === "student") return <StudentDashboard />;
     return <p>Unauthorized: Role not recognized.</p>; 
   };
 

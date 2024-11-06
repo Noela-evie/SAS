@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { userModel } from "../schemas/user.schema.js";
+import { userModel} from "../schemas/user.schema.js";
 import { dbConnect } from "../mongo/index.js";
 
 async function seedDB() {

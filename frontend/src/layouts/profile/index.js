@@ -15,34 +15,36 @@ const Profile = () => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const id = localStorage.getItem('id');
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [NIN, setNIN] = useState("");
+  const [userId, setUserId] = useState("");
+  const [course, setCourse] = useState("");
+  const [group, setGroup] = useState("");
+  const [isGroupLeader, setIsGroupLeader] = useState(false);
+  const [courseunit, setCourseunit] = useState("");
   const [phone, setPhone] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [department, setDepartment] = useState("");
   const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         let response;
-        if (role === "doctor") {
-          response = await axios.get(`/doctors/${id}/profile`, {
+        if (role === "lecturer") {
+          response = await axios.get(`/lecturer/profile/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          const doctorData = response.data;
-          setName(doctorData.name);
-          setEmail(doctorData.email);
-          setNIN(doctorData.NIN);
-          setPhone(doctorData.phone);
-          setSpecialty(doctorData.specialty);
-          setDepartment(doctorData.department);
+          const lecturerData = response.data;
+          setName(lecturerData.name);
+          setEmail(lecturerData.email);
+          setUserId(lecturerData.userId);
+          setCourseunit(lecturerData.courseunit);
+          setCourse(lecturerData.course);
+          setPhone(lecturerData.phone);
         } else {
-          response = await axios.get(`/users/${id}/profile`, {
+          response = await axios.get(`/student/profile/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -50,8 +52,10 @@ const Profile = () => {
           const userData = response.data;
           setName(userData.name);
           setEmail(userData.email);
-          setNIN(userData.NIN);
-          setPhone(userData.phone);
+          setUserId(userData.userId);
+          setCourse(userData.course);
+          setGroup(userData.group);
+          setIsGroupLeader(userData.isGroupLeader);
         }
       } catch (error) {
         console.error(error);
@@ -65,9 +69,9 @@ const Profile = () => {
     setLoading(true);
     try {
       let response;
-      if (role === "doctor") {
+      if (role === "lecturer") {
         response = await axios.patch(
-          `/doctors/${id}/phone`,
+          `/lecturer/${id}/phone`,
           { phone },
           {
             headers: {
@@ -77,7 +81,7 @@ const Profile = () => {
         );
       } else {
         response = await axios.patch(
-          `/users/${id}/phone`,
+          `/student/${id}/phone`,
           { phone },
           {
             headers: {
@@ -96,6 +100,31 @@ const Profile = () => {
     }
   };
 
+  
+    
+    // Check if role is admin and return hardcoded profile
+    if (role === 'admin') {
+      return (
+        <DashboardLayout>
+      <DashboardNavbar />
+        <div class="admin-profile-container">
+        <h1 class="admin-profile-header">Admin Profile</h1>
+        <div class="admin-profile-info">
+          <h2 class="admin-name">Name: Administrator</h2>
+          <p class="admin-email">Email: SasAdmin@gmail.com</p>
+          <p class="admin-description">
+            Welcome to the Admin Profile. This is the central hub for administrative information and updates. 
+            Important notifications and emails will be sent to SasAdmin@gmail.com. 
+            Please ensure to keep this email secure, as it receives sensitive information.
+          </p>
+        </div>
+      </div>
+      </DashboardLayout>
+      );
+    }
+  
+
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -112,23 +141,28 @@ const Profile = () => {
                   Email: {email}
                 </MDTypography>
                 <MDTypography variant="button" color="text" fontWeight="regular">
-                  NIN: {NIN}
+                  User Id: {userId}
                 </MDTypography>
-                {role === "doctor" && (
+                {role === "student" && (
                   <>
-                    <MDTypography
-                      variant="button"
-                      color="text"
-                      fontWeight="regular"
-                    >
-                      Specialty: {specialty}
+                    <MDTypography variant="button" color="text" fontWeight="regular">
+                      Course: {course}
                     </MDTypography>
-                    <MDTypography
-                      variant="button"
-                      color="text"
-                      fontWeight="regular"
-                    >
-                      Department: {department}
+                    <MDTypography variant="button" color="text" fontWeight="regular">
+                      Group: {group}
+                    </MDTypography>
+                    <MDTypography variant="button" color="text" fontWeight="regular">
+                      Group Leader: {isGroupLeader ? "Yes" : "No"}
+                    </MDTypography>
+                  </>
+                )}
+                {role === "lecturer" && (
+                  <>
+                    <MDTypography variant="button" color="text" fontWeight="regular">
+                      Course unit: {courseunit}
+                    </MDTypography>
+                    <MDTypography variant="button" color="text" fontWeight="regular">
+                      Course: {course}
                     </MDTypography>
                   </>
                 )}
@@ -138,28 +172,28 @@ const Profile = () => {
           <Grid item xs="auto" lg={6}>
             <Card>
               <MDTypography variant="h5">Contact Information</MDTypography>
-              <MDBox pt={2} px={2}>
-                <MDInput
-                  type="tel"
-                  label="Phone Number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-                <MDButton
-                  variant="gradient"
-                  color="info"
-                  onClick={handleUpdatePhone}
-                  disabled={loading}
-                >
-                  {loading ? "Updating..." : "Update Phone Number"}
-                </MDButton>
-              </MDBox>
-            </Card>
+              <MDBox pt={2} px={2}></MDBox>
+              <MDInput
+                    type="tel"
+                    label="Phone Number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <MDButton
+                    variant="gradient"
+                    color="info"
+                    onClick={handleUpdatePhone}
+                    disabled={loading}
+                  >
+                    {loading ? "Updating..." : "Update Phone Number"}
+                  </MDButton>
+              
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </MDBox>
-    </DashboardLayout>
-  );
-};
+        </MDBox>
+      </DashboardLayout>
+    );
+  };
 
-export default Profile;
+  export default Profile;

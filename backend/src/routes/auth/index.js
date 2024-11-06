@@ -18,8 +18,8 @@ router.post("/logout", (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const { name, NIN, email, password} = req.body;
-  await registerRouteHandler(req, res, name, NIN, email, password);
+  const { name, userId, email, password, course, group, isGroupLeader } = req.body;
+  await registerRouteHandler(req, res, name, userId, email, password, course, group, isGroupLeader);
 });
 
 router.post("/password-forgot", async (req, res) => {

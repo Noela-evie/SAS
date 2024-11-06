@@ -6,7 +6,12 @@ import "./passport.js";
 import { dbConnect } from "./mongo/index.js";
 import { authRoutes, allRoutes } from "./routes/index.js";
 import cron from "node-cron";
+import multer from 'multer';
+import path from 'path';
 import ReseedAction from "./mongo/ReseedAction.js";
+
+const uploadPath = path.join(__dirname, 'uploads');
+const upload = multer({ dest: './uploads/' });
 
 dotenv.config();
 

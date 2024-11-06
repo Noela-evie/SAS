@@ -68,12 +68,12 @@ const AuthContextProvider = ({ children }) => {
     navigate("/auth/login");
   };
 
-  // Register function for initial registration (sets role as "patient" by default)
+  // Register function for initial registration (sets role as "student" by default)
   const register = async (registerData) => {
   try {
     const response = await axios.post('/register', registerData);
     const token = response.data;
-    const role = "patient";
+    const role = "student";
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
     setRole(role);

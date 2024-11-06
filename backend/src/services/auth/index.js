@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'; 
 import jwt from 'jsonwebtoken';
-import { userModel } from '../../schemas/user.schema.js';
-import { doctorsModel } from '../../schemas/doctors.schema.js';
+import { userModel} from '../../schemas/user.schema.js';
+import { LecturerModel } from '../../schemas/lecturers.schema.js';
 import { passwordResetModel } from '../../schemas/passwordResets.schema.js';
 import dotenv from 'dotenv';
 import randomToken from 'random-token';
@@ -17,59 +17,58 @@ const generateTokenAndResponse = (user, role, res) => {
   const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, { expiresIn: '24h' });
   return res.status(200).json({
     token,
-    id: user._id,  // Include the user's ID here
+    id: user._id,  
     role,
     message: `${role} login successful`
   });
 };
 
-const doctorLogin = async (doctor, password, res) => {
-  if (!doctor.role) {
-    return res.status(500).json({ message: 'Doctor role is missing' });
+const lecturerLogin = async (lecturer, password, res) => {
+  if (!lecturer.role) {
+    return res.status(500).json({ message: 'Lecturer role is missing' });
   }
-  if (doctor.role !== 'doctor') {
-    return res.status(403).json({ message: 'Invalid doctor role' });
+  if (lecturer.role !== 'lecturer') {
+    return res.status(403).json({ message: 'Invalid lecturer role' });
   }
-  if (doctor.password === password) {
-    return generateTokenAndResponse(doctor, doctor.role, res);
+  if (lecturer.password === password) {
+    return generateTokenAndResponse(lecturer, lecturer.role, res);
   }
-  return res.status(401).json({ message: 'Invalid doctor credentials' });
+  return res.status(401).json({ message: 'Invalid lecturer credentials' });
 };
 
-const patientLogin = async (patient, password, res) => {
-  if (!patient.role) {
-    return res.status(500).json({ message: 'Patient role is missing' });
+const studentLogin = async (student, password, res) => {
+  if (!student.role) {
+    return res.status(500).json({ message: 'Student role is missing' });
   }
-  if (patient.role !== 'patient') {
-    return res.status(403).json({ message: 'Invalid patient role' });
+  if (student.role !== 'student') {
+    return res.status(403).json({ message: 'Invalid student role' });
   }
-  if (await bcrypt.compare(password, patient.password)) {
-    return generateTokenAndResponse(patient, patient.role, res);
+  if (await bcrypt.compare(password, student.password)) {
+    return generateTokenAndResponse(student, student.role, res);
   }
-  return res.status(401).json({ message: 'Invalid patient credentials' });
+  return res.status(401).json({ message: 'Invalid student credentials' });
 };
 
 export const loginRouteHandler = async (req, res) => {
-  console.log("Incoming Request:", req.body); 
   try {
-    const { NIN, password } = req.body;
+    const { userId, password } = req.body;
     
     // Admin login
-    if (NIN === process.env.ADMIN_NIN && password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign({ id: NIN, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    if (userId === process.env.ADMIN_ID && password === process.env.ADMIN_PASSWORD) {
+      const token = jwt.sign({ id: userId, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
       return res.status(200).json({ token, role: 'admin', message: 'Admin login successful' });
     }
 
-    // Doctor login
-    const doctor = await doctorsModel.findOne({ NIN });
-    if (doctor) {
-      return doctorLogin(doctor, password, res);
+    // Lecturer login
+    const lecturer = await LecturerModel.findOne({ userId });
+    if (lecturer) {
+      return lecturerLogin(lecturer, password, res);
     }
 
-    // Patient login
-    const patient = await userModel.findOne({ NIN });
-    if (patient) {
-      return patientLogin(patient, password, res);
+    // Student login
+    const student = await userModel.findOne({ userId });
+    if (student) {
+      return studentLogin(student, password, res);
     }
 
     return res.status(401).json({ message: 'Invalid general credentials' });
@@ -81,17 +80,26 @@ export const loginRouteHandler = async (req, res) => {
 
 
 export const registerRouteHandler = async (req, res) => {
-  const { name, NIN, email, password } = req.body;
+  const { 
+    name, 
+    userId, 
+    email, 
+    password, 
+    course, 
+    groupname, 
+    isGroupLeader 
+  } = req.body;
 
-  // Check if user is trying to register with admin NIN
-  if (NIN === process.env.ADMIN_NIN) {
+
+  // Check if user is trying to register with admin userId
+  if (userId === process.env.ADMIN_ID) {
     return res.status(400).json({ message: "Admin cannot register through this route." });
   }
 
   // Check if user already exists
-  const foundUser = await userModel.findOne({ NIN });
+  const foundUser = await userModel.findOne({ userId });
   if (foundUser) {
-      return res.status(400).json({ message: "NIN is already in use" });
+      return res.status(400).json({ message: "userId is already in use" });
   }
 
   // Check if email exists
@@ -110,12 +118,23 @@ export const registerRouteHandler = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(password, salt);
 
-  // Patients are the only ones being registered
-  const newUser = new userModel({ name, email, NIN, password: hashPassword, role: 'patient' }); 
-  await newUser.save();
+   // Students are the only ones being registered
+const newUser = new userModel({
+  name,
+  email,
+  userId,
+  password: hashPassword,
+  role: "student",
+  course,
+  groupname,
+  isGroupLeader
+});
+
+console.log(newUser);
+await newUser.save();
 
   // Generate JWT token
-  const token = jwt.sign({ id: newUser._id, NIN }, process.env.JWT_SECRET, { expiresIn: '24h' });
+  const token = jwt.sign({ id: newUser._id, userId }, process.env.JWT_SECRET, { expiresIn: '24h' });
   return res.status(200).json({ token: token, message: 'Registration successful' });
 };
 

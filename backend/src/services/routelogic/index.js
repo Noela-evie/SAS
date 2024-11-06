@@ -1,187 +1,399 @@
-import { appointmentModel } from '../../schemas/appointments.schema.js';
-import { eventModel } from '../../schemas/events.schema.js';
-import { doctorsModel } from '../../schemas/doctors.schema.js';
+import { LecturerModel } from '../../schemas/lecturers.schema.js';
 import { userModel } from '../../schemas/user.schema.js';
+import { ResourceModel } from '../../schemas/resources.schema.js';
+import { AssignmentModel } from '../../schemas/assignments.schema.js';
+import { NotificationModel } from '../../schemas/notifications.schema.js';
+import { SubmissionModel } from '../../schemas/submissions.schema.js';
+const multer = require('multer');
+const upload = multer({ dest: './uploads/' });
 
-// 1. Post an appointment
-export const postAppointmentRouteHandler = async (req, res) => {
-    try {
-      const appointment = new appointmentModel(req.body);
-      await appointment.save();
-      res.status(201).json({ message: 'Appointment created successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 2. Get an appointment
-  export const getAppointmentRouteHandler = async (req, res) => {
-    try {
-      const id = ("link unavailable");
-      const appointment = await appointmentModel.findById(id);
-      if (!appointment) {
-        return res.status(404).json({ message: 'Appointment not found' });
+// Lecturer APIs
+export const postLecturerUploadResourceRouteHandler = async (req, res) => {
+  upload.single('resourceContent')(req, res, async (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error uploading resource' });
+    } else {
+      try {
+        const lecturerId = req.params.lecturerId;
+        const resource = new ResourceModel({
+          resourceName: req.body.resourceName,
+          resourceType: req.body.resourceType,
+          courseunit: req.body.courseunit,
+          course: req.body.course,
+          lecturer: lecturerId,
+          resourceContent: req.file.filename,
+        });
+        await resource.save();
+        res.json({ message: 'Resource uploaded successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
       }
-      res.json(appointment);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
     }
-  };
-  
-  // 3. Get all appointments for a given doctor or patient
-export const getAppointmentsRouteHandler = async (req, res) => {
+  });
+};
+
+export const postLecturerSetAssignmentRouteHandler = async (req, res) => {
+  upload.single('assignment')(req, res, async (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error setting assignment' });
+    } else {
+      try {
+        const lecturerId = req.params.lecturerId;
+        const assignment = new AssignmentModel({
+          deadlineDate: req.body.deadlineDate,
+          deadlineTime: req.body.deadlineTime,
+          type: req.body.type,
+          course: req.body.course,
+          lecturer: lecturerId,
+          assignment: req.file.filename,
+        });
+        await assignment.save();
+        res.json({ message: 'Assignment set successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+      }
+    }
+  });
+};
+
+export const getLecturerAssignmentsRouteHandler = async (req, res) => {
   try {
-    const doctorId = req.query.doctor?._id;
-    const patientId = req.query.user?._id;
-    const appointments = await appointmentModel.find({
-      $or: [{ doctor: doctorId }, { patient: patientId }],
-    });
-    res.json(appointments);
+    const lecturerId = req.params.lecturerId;
+    const assignments = await AssignmentModel.find({ lecturer: lecturerId });
+    res.json(assignments);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-  
-  // 4. Get all appointments
-  export const getAllAppointmentsRouteHandler = async (req, res) => {
-    try {
-      const appointments = await appointmentModel.find();
-      res.json(appointments);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 5. Post event
-  export const postEventRouteHandler = async (req, res) => {
-    try {
-      const event = new eventModel(req.body);
-      await event.save();
-      res.status(201).json({ message: 'Event created successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 6. Get event for given doctor
-  export const getEventRouteHandler = async (req, res) => {
-    try {
-      const doctorId = req.params.doctorId;
-      const event = await eventModel.findOne({ doctor: doctorId });
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
-      res.json(event);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 7. Get all events for a given doctor
-  export const getEventsRouteHandler = async (req, res) => {
-    try {
-      const doctorId = req.query.doctorId;
-      const events = await eventModel.find({ doctor: doctorId });
-      res.json(events);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 8. Delete event for a given doctor
-  export const deleteEventRouteHandler = async (req, res) => {
-    try {
-      const eventId = req.params.eventId;
-      await eventModel.findByIdAndDelete(eventId);
-      res.status(204).json({ message: 'Event deleted successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  // 9. Get all doctor data for profile
-  export const getDoctorProfileRouteHandler = async (req, res) => {
-    try {
-      const doctorId = req.params.doctorId;
-      const doctor = await doctorsModel.findById(doctorId);
-      if (!doctor) {
-        return res.status(404).json({ message: 'Doctor not found' });
-      }
-      res.json(doctor);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-    // 10. Patch phone number to user schema
-    export const patchUserPhoneRouteHandler = async (req, res) => {
-    try {
-    const userId = req.params.userId;
-    const phone = req.body.phone;
-    await userModel.updateOne({ _id: userId }, { $set: { phone } });
-    res.status(200).json({ message: 'Phone number updated successfully' });
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-    }
-    };
-    
-    // 11. Patch phone number to doctor schema
-    export const patchDoctorPhoneRouteHandler = async (req, res) => {
-    try {
-    const doctorId = req.params.doctorId;
-    const phone = req.body.phone;
-    await doctorsModel.updateOne({ _id: doctorId }, { $set: { phone } });
-    res.status(200).json({ message: 'Phone number updated successfully' });
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-    }
-    };
-    
-    // 12. Patch status when appointment is cancelled
-    export const patchAppointmentStatusRouteHandler = async (req, res) => {
-    try {
-    const appointmentId = req.params.appointmentId;
-    await appointmentModel.updateOne({ _id: appointmentId }, { $set: { status: 'cancelled' } });
-    res.status(200).json({ message: 'Appointment status updated successfully' });
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-    }
-    };
-    
-    // 13. Patch status to successful when appointment date passes
-    export const patchAppointmentStatusToSuccessfulRouteHandler = async (req, res) => {
-    try {
-    const appointmentId = req.params.appointmentId;
-    await appointmentModel.updateOne({ _id: appointmentId }, { $set: { status: 'successful' } });
-    res.status(200).json({ message: 'Appointment status updated successfully' });
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-    }
-    };  
 
-    //14. Get user data for user profile
-  export const getUserProfileRouteHandler = async (req, res) => {
+export const getLecturerAssignmentSubmissionsRouteHandler = async (req, res) => {
+  try {
+    const assignmentId = req.params.assignmentId;
+    const submissions = await SubmissionModel.find({ assignment: assignmentId });
+    res.json(submissions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getLecturerResourcesRouteHandler = async (req, res) => {
+  try {
+    const lecturerId = req.params.lecturerId;
+    const resources = await ResourceModel.find({ lecturer: lecturerId });
+    res.json(resources);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const patchLecturerEditResourceRouteHandler = async (req, res) => {
+  try {
+    const resourceId = req.params.resourceId;
+    const resource = await ResourceModel.findByIdAndUpdate(resourceId, req.body, { new: true });
+    res.json(resource);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const deleteLecturerDeleteResourceRouteHandler = async (req, res) => {
+  try {
+    const resourceId = req.params.resourceId;
+    await ResourceModel.findByIdAndDelete(resourceId);
+    res.json({ message: 'Resource deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Student APIs
+export const getStudentCourseResourcesRouteHandler = async (req, res) => {
+  try {
+    const course = req.params.course;
+    const resources = await ResourceModel.find({ course: course });
+    res.json(resources);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+export const getStudentCourseUnitResourcesRouteHandler = async (req, res) => {
+  try {
+    const courseunit = req.params.courseunit;
+    const resources = await ResourceModel.find({ courseunit: courseunit });
+    res.json(resources);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
+  try {
+    const resourcetype = req.params.type;
+    const resources = await ResourceModel.find({ resourceType: resourcetype });
+    res.json(resources);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getStudentAssignmentsRouteHandler = async (req, res) => {
+    try {
+      const studentId = req.params.studentId;
+      const assignments = await AssignmentModel.find({ students: studentId });
+      res.json(assignments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const postStudentSubmitAssignmentRouteHandler = async (req, res) => {
+    upload.single('file')(req, res, async (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error submitting assignment' });
+      } else {
+        try {
+          const assignmentId = req.params.assignmentId;
+          const studentId = req.params.studentId;
+          const submission = new SubmissionModel({
+            assignment: assignmentId,
+            student: studentId,
+            file: req.file.filename,
+            submittedAt: Date.now(),
+            ...req.body,
+          });
+          await submission.save();
+          res.json({ message: 'Assignment submitted successfully' });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Server error' });
+        }
+      }
+    });
+  };
+  
+  
+  export const getStudentAssignmentSubmissionsRouteHandler = async (req, res) => {
+    try {
+      const studentId = req.params.studentId;
+      const submissions = await SubmissionModel.find({ student: studentId });
+      res.json(submissions);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const getStudentGroupMembersRouteHandler = async (req, res) => {
+    try {
+      const groupId = req.params.groupId;
+      const members = await GroupModel.findById(groupId).populate('members');
+      res.json(members);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const getStudentNotificationsRouteHandler = async (req, res) => {
+    try {
+      const studentId = req.params.studentId;
+      const notifications = await NotificationModel.find({ student: studentId });
+      res.json(notifications);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  // Group APIs
+  export const getGroupGroupMembersRouteHandler = async (req, res) => {
+    try {
+      const groupId = req.params.groupId;
+      const members = await GroupModel.findById(groupId).populate('members');
+      res.json(members);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const postGroupSubmitGroupAssignmentRouteHandler = async (req, res) => {
+    try {
+      const assignmentId = req.params.assignmentId;
+      const groupId = req.params.groupId;
+      const submission = new SubmissionModel({ assignment: assignmentId, group: groupId, ...req.body });
+      await submission.save();
+      res.json({ message: 'Group assignment submitted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  // Admin APIs
+  export const getAdminDashboardRouteHandler = async (req, res) => {
+    try {
+      const adminId = req.params.adminId;
+      const admin = await adminModel.findById(adminId);
+      res.json(admin);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const getAdminUsersRouteHandler = async (req, res) => {
+    try {
+      const users = await UserModel.find();
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const getAdminUserRouteHandler = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const user = await userModel.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'Patient not found' });
-      }
+      const user = await UserModel.findById(userId);
       res.json(user);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
     }
   };
+  
+  export const patchAdminEditUserRouteHandler = async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await UserModel.findByIdAndUpdate(userId, req.body, { new: true });
+      res.json(user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const deleteAdminDeleteUserRouteHandler = async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      await UserModel.findByIdAndDelete(userId);
+      res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  // Assignment APIs
+export const getAssignmentsRouteHandler = async (req, res) => {
+    try {
+    const assignments = await AssignmentModel.find();
+    res.json(assignments);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    export const getAssignmentRouteHandler = async (req, res) => {
+    try {
+    const assignmentId = req.params.assignmentId;
+    const assignment = await AssignmentModel.findById(assignmentId);
+    res.json(assignment);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    export const postAssignmentSubmitRouteHandler = async (req, res) => {
+    try {
+    const assignmentId = req.params.assignmentId;
+    const submission = new SubmissionModel({ assignment: assignmentId, ...req.body });
+    await submission.save();
+    res.json({ message: 'Assignment submitted successfully' });
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    // Resource APIs
+    export const getResourcesRouteHandler = async (req, res) => {
+    try {
+    const resources = await ResourceModel.find();
+    res.json(resources);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    export const getResourceRouteHandler = async (req, res) => {
+    try {
+    const resourceId = req.params.resourceId;
+    const resource = await ResourceModel.findById(resourceId);
+    res.json(resource);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    // Submission APIs
+    export const getSubmissionsRouteHandler = async (req, res) => {
+    try {
+    const submissions = await SubmissionModel.find();
+    res.json(submissions);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    export const getSubmissionRouteHandler = async (req, res) => {
+    try {
+    const submissionId = req.params.submissionId;
+    const submission = await SubmissionModel.findById(submissionId);
+    res.json(submission);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    // Profile APIs
+    export const getStudentProfileRouteHandler = async (req, res) => {
+    try {
+    const studentId = req.params.studentId;
+    const student = await userModel.findById(studentId);
+    res.json(student);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };
+    
+    export const getLecturerProfileRouteHandler = async (req, res) => {
+    try {
+    const lecturerId = req.params.lecturerId;
+    const lecturer = await LecturerModel.findById(lecturerId);
+    res.json(lecturer);
+    } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+    }
+    };

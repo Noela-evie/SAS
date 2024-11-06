@@ -79,7 +79,7 @@ function BasicLayout({ image, children }) {
                       marginBottom="0.5rem"
                     >
                       <Typography variant="body2" fontWeight="700" style={{ color: "white" }}>
-                        BOOK YOUR APPOINTMENT TODAY!
+                      All the resources you need in one place.
                       </Typography>
                       <List dense={true}>
                         <ListItem>

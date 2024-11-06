@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { userModel } from "../schemas/user.schema.js";
+import { userModel} from "../schemas/user.schema.js";
 import { dbConnect } from "./index.js";
 
 const ReseedAction = () => {

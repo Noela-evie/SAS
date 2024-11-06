@@ -31,12 +31,12 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [inputs, setInputs] = useState({
-    NIN: "", 
+    userId: "", 
     password: "", 
   });
 
   const [errors, setErrors] = useState({
-    NINError: false,
+    userIdError: false,
     passwordError: false,
   });
 
@@ -56,8 +56,8 @@ function Login() {
     e.preventDefault();
   
 
-    if (inputs.NIN.trim().length < 14) {
-      setErrors({ ...errors, NINError: true });
+    if (inputs.userId.trim().length < 4 && userId.trim().length > 15) {
+      setErrors({ ...errors, userIdError: true });
       return;
     }
 
@@ -67,7 +67,7 @@ function Login() {
     }
 
     const loginData = {
-      NIN: inputs.NIN,
+      userId: inputs.userId,
       password: inputs.password
     }
 
@@ -79,8 +79,8 @@ try {
     setCredentialsError(res.message);
   } else {
     setCredentialsError(res.errors[0].detail);
-    setInputs({ NIN: "", password: "", });
-    setErrors({ NINError: false, passwordError: false, });
+    setInputs({ userId: "", password: "", });
+    setErrors({ userIdError: false, passwordError: false, });
   }
 }
   }
@@ -122,12 +122,12 @@ try {
             <MDBox mb={2}>
               <MDInput
                 type="text"
-                label="NIN"
+                label="userId"
                 fullWidth
-                value={inputs.NIN}
-                name="NIN"
+                value={inputs.userId}
+                name="userId"
                 onChange={changeHandler}
-                error={errors.NINError}
+                error={errors.userIdError}
               />
             </MDBox>
             

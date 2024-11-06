@@ -27,16 +27,22 @@ function Register() {
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
-    NIN: "",
+    userId: "",
     password: "",
+    course: "",
+    group: "",
+    isGroupLeader: false,
     agree: false,
   });
-
+  
   const [errors, setErrors] = useState({
     nameError: false,
     emailError: false,
-    NINError: false,
+    userIdError: false,
     passwordError: false,
+    courseError: false,
+    groupError: false,
+    isGroupLeaderError: false,
     agreeError: false,
     error: false,
     errorText: "",
@@ -45,10 +51,9 @@ function Register() {
   const changeHandler = (e) => {
     setInputs({
       ...inputs,
-      [e.target.name]: e.target.value,
-      
+      [e.target.name]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
     });
-  };
+  }; 
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -60,8 +65,8 @@ function Register() {
       return;
     }
 
-    if (inputs.NIN.trim().length !== 14) {
-      setErrors({ ...errors, NINError: true });
+    if (inputs.userId.trim().length < 4 && userId.trim().length > 8) {
+      setErrors({ ...errors, userIdError: true });
       return;
     }
 
@@ -70,6 +75,16 @@ function Register() {
       return;
     }
 
+    if (inputs.course !== "BIST" && inputs.course !== "BSE" && inputs.course !== "CSC") {
+      setErrors({ ...errors, courseError: true });
+      return;
+    }
+
+      const groupNameRegex = /^Group [A-Z]$/i;
+    if (!groupNameRegex.test(inputs.group.trim())) {
+      setErrors({ ...errors, groupError: true });
+      return;
+    }
 
     if (!inputs.password.trim() || inputs.password.trim().length < 8) {
       setErrors({ ...errors, passwordError: true });
@@ -82,14 +97,16 @@ function Register() {
     }
 
     // here will be the post action to add a user to the db
-    const newUser = { name: inputs.name, email: inputs.email, NIN: inputs.NIN, password: inputs.password };
 
     const registerData = {
       name: inputs.name,
       email: inputs.email,
-      NIN: inputs.NIN,
+      userId: inputs.userId,
       password: inputs.password,
-    }
+      course: inputs.course,
+      group: inputs.group,
+      isGroupLeader: inputs.isGroupLeader,
+    };
 
     try {
       const response = await authContext.register(registerData);
@@ -97,16 +114,22 @@ function Register() {
       setInputs({
         name: "",
         email: "",
-        NIN: "",
+        userId: "",
         password: "",
+        course: "",
+        group: "",
+        isGroupLeader: false,
         agree: false,
       });
 
       setErrors({
         nameError: false,
         emailError: false,
-        NINError: false,
+        userIdError: false,
         passwordError: false,
+        courseError: false,
+        groupError: false,
+        isGroupLeaderError: false,
         agreeError: false,
         error: false,
         errorText: "",
@@ -187,23 +210,23 @@ function Register() {
             <MDBox mb={2}>
               <MDInput
                 type="text"
-                label="NIN"
+                label="userId"
                 variant="standard"
                 fullWidth
-                name="NIN"
-                value={inputs.NIN}
+                name="userId"
+                value={inputs.userId}
                 onChange={changeHandler}
-                error={errors.NINError}
+                error={errors.userIdError}
                 inputProps={{
-                  autoComplete: "NIN",
+                  autoComplete: "userId",
                   form: {
                     autoComplete: "off",
                   },
                 }}
               />
-              {errors.NINError && (
+              {errors.userIdError && (
                 <MDTypography variant="caption" color="error" fontWeight="light">
-                  The NIN must have 14 characters
+                  The userId must have 14 characters
                 </MDTypography>
               )}
             </MDBox>
@@ -224,6 +247,61 @@ function Register() {
                   The password must be of at least 8 characters
                 </MDTypography>
               )}
+          </MDBox>
+
+          <MDBox mb={2}>
+            <MDInput
+              type="text"
+              label="Course"
+              variant="standard"
+              fullWidth
+              name="course"
+              value={inputs.course}
+              onChange={changeHandler}
+              error={errors.courseError}
+            />
+            {errors.courseError && (
+                <MDTypography variant="caption" color="error" fontWeight="light">
+                  The course is either BIST, BSE or CSC.
+                </MDTypography>
+              )}
+            
+
+                        <MDBox mb={2}>
+              <MDTypography variant="button" color="text" fontWeight="regular">
+                Enter Group Name
+              </MDTypography>
+              <MDInput
+                type="text"
+                name="group"
+                value={inputs.group}
+                onChange={changeHandler}
+                error={errors.groupError}
+              />
+              {errors.groupError && (
+                <MDTypography variant="caption" color="error" fontWeight="light">
+                  Please enter a valid group name (e.g., Group A, Group B, etc.)
+                </MDTypography>
+              )}
+            </MDBox>
+
+                        <MDBox mb={2}>
+              <MDTypography variant="button" color="text" fontWeight="regular">
+                Are you a Group Leader?
+              </MDTypography>
+              <MDBox display="flex" alignItems="center" ml={-1}>
+                <Checkbox
+                  name="isGroupLeader"
+                  checked={inputs.isGroupLeader}
+                  onChange={changeHandler}
+                />
+              </MDBox>
+              {errors.isGroupLeaderError && (
+                <MDTypography variant="caption" color="error" fontWeight="light">
+                  Please select an option
+                </MDTypography>
+              )}
+            </MDBox>
 
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
