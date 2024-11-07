@@ -4,7 +4,9 @@ import { ResourceModel } from '../../schemas/resources.schema.js';
 import { AssignmentModel } from '../../schemas/assignments.schema.js';
 import { NotificationModel } from '../../schemas/notifications.schema.js';
 import { SubmissionModel } from '../../schemas/submissions.schema.js';
-const multer = require('multer');
+import multer from 'multer';
+import path from 'path';
+import archiver from 'archiver';
 const upload = multer({ dest: './uploads/' });
 
 // Lecturer APIs
@@ -119,6 +121,7 @@ export const deleteLecturerDeleteResourceRouteHandler = async (req, res) => {
 export const getStudentCourseResourcesRouteHandler = async (req, res) => {
   try {
     const course = req.params.course;
+    console.log(course)
     const resources = await ResourceModel.find({ course: course });
     res.json(resources);
   } catch (error) {
@@ -147,16 +150,6 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   }
 };
 
-export const getStudentAssignmentsRouteHandler = async (req, res) => {
-    try {
-      const studentId = req.params.studentId;
-      const assignments = await AssignmentModel.find({ students: studentId });
-      res.json(assignments);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
   
   export const postStudentSubmitAssignmentRouteHandler = async (req, res) => {
     upload.single('file')(req, res, async (err) => {
@@ -169,7 +162,7 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
           const studentId = req.params.studentId;
           const submission = new SubmissionModel({
             assignment: assignmentId,
-            student: studentId,
+            userId: studentId,
             file: req.file.filename,
             submittedAt: Date.now(),
             ...req.body,
@@ -198,8 +191,8 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
   
   export const getStudentGroupMembersRouteHandler = async (req, res) => {
     try {
-      const groupId = req.params.groupId;
-      const members = await GroupModel.findById(groupId).populate('members');
+      const groupname = req.params.groupname;
+      const members = await userModel.find({groupname: groupname});
       res.json(members);
     } catch (error) {
       console.error(error);
@@ -218,12 +211,17 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
     }
   };
   
-  // Group APIs
-  export const getGroupGroupMembersRouteHandler = async (req, res) => {
+  export const postStudentNotificationsRouteHandler = async (req, res) => {
     try {
-      const groupId = req.params.groupId;
-      const members = await GroupModel.findById(groupId).populate('members');
-      res.json(members);
+      const { studentId, title, message } = req.body;
+  
+      await NotificationModel.create({
+        student: studentId,
+        title,
+        message,
+      });
+  
+      res.status(201).json({ message: 'Notification created successfully' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
@@ -243,21 +241,10 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
     }
   };
   
-  // Admin APIs
-  export const getAdminDashboardRouteHandler = async (req, res) => {
-    try {
-      const adminId = req.params.adminId;
-      const admin = await adminModel.findById(adminId);
-      res.json(admin);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
+
   export const getAdminUsersRouteHandler = async (req, res) => {
     try {
-      const users = await UserModel.find();
+      const users = await userModel.find();
       res.json(users);
     } catch (error) {
       console.error(error);
@@ -268,7 +255,7 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
   export const getAdminUserRouteHandler = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const user = await UserModel.findById(userId);
+      const user = await userModel.findById(userId);
       res.json(user);
     } catch (error) {
       console.error(error);
@@ -279,7 +266,7 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
   export const patchAdminEditUserRouteHandler = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const user = await UserModel.findByIdAndUpdate(userId, req.body, { new: true });
+      const user = await userModel.findByIdAndUpdate(userId, req.body, { new: true });
       res.json(user);
     } catch (error) {
       console.error(error);
@@ -300,7 +287,8 @@ export const getStudentAssignmentsRouteHandler = async (req, res) => {
   // Assignment APIs
 export const getAssignmentsRouteHandler = async (req, res) => {
     try {
-    const assignments = await AssignmentModel.find();
+    const course = req.params.course;
+    const assignments = await AssignmentModel.find({course: course});
     res.json(assignments);
     } catch (error) {
     console.error(error);
@@ -317,6 +305,7 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
     }
+    
     };
     
     export const postAssignmentSubmitRouteHandler = async (req, res) => {
@@ -396,4 +385,27 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
     }
+    };
+    export const postLecturerDownloadAllSubmissionsRouteHandler = async (req, res) => {
+      try {
+        const assignmentId = req.params.assignmentId;
+        const submissions = await SubmissionModel.find({ assignment: assignmentId });
+    
+        const archive = archiver('zip', {
+          zlib: { level: 9 } 
+        });
+    
+        res.attachment(`assignment-${assignmentId}-submissions.zip`);
+    
+        archive.pipe(res);
+    
+        submissions.forEach(submission => {
+          archive.file(submission.file.path, { name: `${submission.studentId}-${submission.fileName}` });
+        });
+    
+        archive.finalize();
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+      }
     };

@@ -11,13 +11,12 @@ import {
   getStudentCourseResourcesRouteHandler,
   getStudentCourseUnitResourcesRouteHandler,
   getStudentResourcesByTypeRouteHandler,
-  getStudentAssignmentsRouteHandler,
   postStudentSubmitAssignmentRouteHandler,
   getStudentAssignmentSubmissionsRouteHandler,
   getStudentGroupMembersRouteHandler,
   getStudentNotificationsRouteHandler,
+  postStudentNotificationsRouteHandler,
   // Group APIs
-  getGroupGroupMembersRouteHandler,
   postGroupSubmitGroupAssignmentRouteHandler,
   // Admin APIs
   getAdminUsersRouteHandler,
@@ -37,6 +36,7 @@ import {
   // Profile APIs
   getStudentProfileRouteHandler,
   getLecturerProfileRouteHandler,
+  postLecturerDownloadAllSubmissionsRouteHandler,
 } from "../../services/routelogic/index.js";
 
 const router = express.Router();
@@ -51,15 +51,15 @@ router.delete("/lecturer/delete-resource/:resourceId", deleteLecturerDeleteResou
 // Student Routes
 router.get("/student/course-resources", getStudentCourseResourcesRouteHandler);
 router.get("/student/courseunit-resources", getStudentCourseUnitResourcesRouteHandler);
-router.get("/student/courseunit-resources", getStudentResourcesByTypeRouteHandler);
-router.get("/student/assignments", getStudentAssignmentsRouteHandler);
+router.get("/student/type-resources", getStudentResourcesByTypeRouteHandler);
 router.post('/student/submit-assignment/:assignmentId/:studentId', postStudentSubmitAssignmentRouteHandler);
-router.get("/student/assignment-submissions", getStudentAssignmentSubmissionsRouteHandler);
+router.get("/student/assignment-submissions/:studentId", getStudentAssignmentSubmissionsRouteHandler);
 router.get("/student/group-members", getStudentGroupMembersRouteHandler);
-router.get("/student/notifications", getStudentNotificationsRouteHandler);
+router.get("/student/notifications/get", getStudentNotificationsRouteHandler);
+router.post("/student/notifications", postStudentNotificationsRouteHandler);
+
 
 // Group Routes
-router.get("/group/group-members/:groupId", getGroupGroupMembersRouteHandler);
 router.post("/group/submit-group-assignment/:assignmentId", postGroupSubmitGroupAssignmentRouteHandler);
 
 // Admin Routes
@@ -84,5 +84,6 @@ router.get("/submission/:submissionId", getSubmissionRouteHandler);
 // Profile Routes
 router.get("/student/profile/:studentId", getStudentProfileRouteHandler);
 router.get("/lecturer/profile/:lecturerId", getLecturerProfileRouteHandler);
+router.post('/lecturer/download-all-submissions/:assignmentId', postLecturerDownloadAllSubmissionsRouteHandler);
 
 export default router;

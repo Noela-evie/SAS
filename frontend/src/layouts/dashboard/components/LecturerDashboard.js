@@ -7,6 +7,7 @@ const LecturerDashboard = () => {
   const [assignments, setAssignments] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [showNoSubmissionsMessage, setShowNoSubmissionsMessage] = useState(false);
   const [newResource, setNewResource] = useState({
     resourceName: '',
     resourceType: '',
@@ -57,11 +58,12 @@ const LecturerDashboard = () => {
     formData.append('resourceContent', newResource.resourceContent);
 
     axios.post(`/lecturer/upload-resource/${lecturerId}`, formData)
-      .then(response => {
-        alert('Resource uploaded successfully');
-        setResources([...resources, response.data]);
-      })
-      .catch(error => console.error(error));
+    .then(response => {
+      alert('Resource uploaded successfully');
+      setResources([...resources, response.data]);
+      setNewResource({ resourceName: '', resourceType: '', courseunit: '', course: '', resourceContent: null });
+    })
+    .catch(error => console.error(error));
   };
 
   const setAssignment = () => {
@@ -165,16 +167,16 @@ const LecturerDashboard = () => {
 
       {/* View Resources */}
       <div className="dashboard-content">
-        <h2>View Resources</h2>
-        <ul>
-          {resources.map(resource => (
-            <li key={("#")}>
-              {resource.resourceName} - {resource.resourceType}
-              <button onClick={() => deleteResource(("#"))}>Delete</button>
-            </li>
-          ))}
-        </ul>
-      </div>
+  <h2>View Resources</h2>
+  <ul>
+    {resources.map(resource => (
+      <li key={resource._id}>
+        {resource.resourceName} - {resource.resourceType}
+        <button onClick={() => deleteResource(resource._id)}>Delete</button>
+      </li>
+    ))}
+  </ul>
+</div>
 
       {/* Set Assignment */}
       <div className="set-assignment">
@@ -219,33 +221,56 @@ const LecturerDashboard = () => {
 
       {/* View Assignments */}
       <div className="dashboard-content">
-        <h2>View Assignments</h2>
-        <ul>
-          {assignments.map(assignment => (
-            <li key={("#")}>
-              {assignment.type} Assignment - {assignment.deadlineDate}
-              <button onClick={() => viewSubmissions(("#"))}>View Submissions</button>
-            </li>
-          ))}
-        </ul>
-      </div>
+  <h2>View Assignments</h2>
+  <ul>
+  {assignments.map(assignment => (
+  <li key={assignment._id}>
+    {assignment.type} Assignment - 
+    Deadline: {new Date(assignment.deadlineDate).toLocaleString('en-US', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    })} 
+     at {new Date(assignment.deadlineDate).toLocaleTimeString('en-US', { hour12: true })}
+    <button onClick={() => viewSubmissions(assignment._id)}>View Submissions</button>
+  </li>
+))}
+  </ul>
+</div>
 
-      {selectedAssignment && (
-        <div>
-          <h2>View Submissions for Assignment {selectedAssignment}</h2>
-          <ul>
-            {submissions.map(submission => (
-              <li key={("#")}>
-                {submission.userId} - {submission.status}
-                <a href={submission.file} download>Download</a>
-              </li>
-            ))}
-          </ul>
-          <button onClick={downloadAllSubmissions}>Download All Submissions</button>
-        </div>
-      )}
-    </div>
-  );
-};
+      {selectedAssignment && submissions.length > 0 ? (
+  <div>
+    <h2>View Submissions for Assignment {selectedAssignment}</h2>
+    <ul>
+    {submissions.map(submission => (
+  <li key={submission._id}>
+    {submission.userId} - {submission.status} 
+    Submitted on: {new Date(submission.createdAt).toLocaleString('en-US', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })}
+    <a href={submission.file} download>Download</a>
+  </li>
+))}
+    </ul>
+    <button onClick={downloadAllSubmissions}>Download All Submissions</button>
+  </div>
+) : (
+  !showNoSubmissionsMessage ? (
+    <>
+      {setShowNoSubmissionsMessage(true)}
+      <p>No submissions yet</p>
+    </>
+  ) : (
+    <p>No submissions yet</p>
+  )
+
+)}
+</div> 
+  )}
+
 
 export default LecturerDashboard;

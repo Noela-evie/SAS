@@ -2,7 +2,6 @@
  import Dashboard from "layouts/dashboard";
  import Notifications from "layouts/notifications";
  import Profile from "layouts/profile";
- import Reminders from "layouts/reminders"
  import SignIn from "layouts/authentication/sign-in";
  import SignUp from "layouts/authentication/sign-up";
  
@@ -39,14 +38,6 @@
      route: "/profile",
      component: <Profile />,
    },
-   {
-    type: "collapse",
-    name: "Reminders",
-    key: "reminders",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/reminders",
-    component: <Reminders />,
-  },
    {
      type: "collapse",
      name: "Sign In",

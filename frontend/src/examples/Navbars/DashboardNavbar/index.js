@@ -98,7 +98,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
       sx={{ mt: 2 }}
     >
       <Link to="/notifications"><NotificationItem icon={<Icon>email</Icon>} title="Check new messages" /></Link>
-      <Link to="/reminders"><NotificationItem icon={<Icon>shopping_cart</Icon>} title="Check reminders" /></Link>
     </Menu>
   );
 
