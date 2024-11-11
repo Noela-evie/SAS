@@ -32,7 +32,7 @@ const Profile = () => {
         setUserId(userData.userId);
         setCourse(userData.course);
         if (role === "student") {
-          setGroup(userData.group);
+          setGroup(userData.groupname);
           setIsGroupLeader(userData.isGroupLeader);
         } else {
           setCourseunit(userData.courseunit);
@@ -89,7 +89,7 @@ const Profile = () => {
                   <b>Course:</b> {course}
                 </p>
                 <p className="text-lg">
-                  <b>Group:</b> {group}
+                  <b>Group:</b> {groupname}
                 </p>
                 <p className="text-lg">
                   <b>Group Leader:</b> {isGroupLeader ? "Yes" : "No"}
