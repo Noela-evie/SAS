@@ -221,7 +221,7 @@ const LecturerDashboard = () => {
             </div>
             <button 
               onClick={uploadResource} 
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 text-xs rounded"
             >
               Upload Resource
             </button>
@@ -243,13 +243,13 @@ const LecturerDashboard = () => {
                 <p className="text-lg"><b>Course: </b>{resource.course}</p>
                 <button
                   onClick={() => window.open(resource.resourceContent, "_self")}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2 text-xs"
                 >
                   Download Resource
                 </button>
                 <button
                   onClick={() => deleteResource(resource._id)}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-xs"
                 >
                   Delete Resource
                 </button>
@@ -334,7 +334,7 @@ const LecturerDashboard = () => {
             </div>
             <button 
               onClick={setAssignment} 
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 text-xs rounded"
             >
               Set Assignment
             </button>
@@ -364,13 +364,13 @@ const LecturerDashboard = () => {
 
             <button
               onClick={() => window.open(assignment.assignment, "_self")}
-              className="bg-white hover:bg-grey-subtle text-blue-800 font-bold py-2 px-4 rounded"
+              className="bg-white hover:bg-grey-subtle text-blue-800 font-bold py-2 px-4 rounded mb-2 text-xs"
             >
               Download Assignment
             </button>
             <button
               onClick={() => viewSubmissions(assignment._id)}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-xs "
             >
               View Submissions
             </button>
