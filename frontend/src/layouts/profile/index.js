@@ -12,7 +12,7 @@ const Profile = () => {
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [course, setCourse] = useState("");
-  const [group, setGroup] = useState("");
+  const [groupname, setGroupName] = useState("");
   const [isGroupLeader, setIsGroupLeader] = useState(false);
   const [courseunit, setCourseunit] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ const Profile = () => {
         setUserId(userData.userId);
         setCourse(userData.course);
         if (role === "student") {
-          setGroup(userData.groupname);
+          setGroupName(userData.groupname);
           setIsGroupLeader(userData.isGroupLeader);
         } else {
           setCourseunit(userData.courseunit);
