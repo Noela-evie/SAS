@@ -5,8 +5,8 @@ import { AssignmentModel } from '../../schemas/assignments.schema.js';
 import { NotificationModel } from '../../schemas/notifications.schema.js';
 import { SubmissionModel } from '../../schemas/submissions.schema.js';
 import multer from 'multer';
-import path from 'path';
 import archiver from 'archiver';
+import path from 'path';
 const upload = multer({ dest: './uploads/' });
 
 // Lecturer APIs
@@ -24,8 +24,7 @@ export const postLecturerUploadResourceRouteHandler = async (req, res) => {
           courseunit: req.body.courseunit,
           course: req.body.course,
           lecturer: lecturerId,
-          resourceContent: req.file.filename,
-        });
+          resourceContent: req.file.path,        });
         await resource.save();
         res.json({ message: 'Resource uploaded successfully' });
       } catch (error) {
@@ -37,7 +36,7 @@ export const postLecturerUploadResourceRouteHandler = async (req, res) => {
 };
 
 export const postLecturerSetAssignmentRouteHandler = async (req, res) => {
-  upload.single('assignment')(req, res, async (err) => {
+  upload.single('assignmentFile')(req, res, async (err) => {
     if (err) {
       console.error(err);
       res.status(500).json({ message: 'Error setting assignment' });
@@ -45,12 +44,13 @@ export const postLecturerSetAssignmentRouteHandler = async (req, res) => {
       try {
         const lecturerId = req.params.lecturerId;
         const assignment = new AssignmentModel({
+          assignmentName: req.body.assignmentName,
           deadlineDate: req.body.deadlineDate,
           deadlineTime: req.body.deadlineTime,
-          type: req.body.type,
+          Type: req.body.type,
           course: req.body.course,
           lecturer: lecturerId,
-          assignment: req.file.filename,
+          assignment: req.file.path,
         });
         await assignment.save();
         res.json({ message: 'Assignment set successfully' });
@@ -75,7 +75,7 @@ export const getLecturerAssignmentsRouteHandler = async (req, res) => {
 
 export const getLecturerAssignmentSubmissionsRouteHandler = async (req, res) => {
   try {
-    const assignmentId = req.params.assignmentId;
+    const assignmentId = req.body.assignmentId;
     const submissions = await SubmissionModel.find({ assignment: assignmentId });
     res.json(submissions);
   } catch (error) {
@@ -97,7 +97,7 @@ export const getLecturerResourcesRouteHandler = async (req, res) => {
 
 export const patchLecturerEditResourceRouteHandler = async (req, res) => {
   try {
-    const resourceId = req.params.resourceId;
+    const resourceId = req.body.resourceId;
     const resource = await ResourceModel.findByIdAndUpdate(resourceId, req.body, { new: true });
     res.json(resource);
   } catch (error) {
@@ -108,7 +108,7 @@ export const patchLecturerEditResourceRouteHandler = async (req, res) => {
 
 export const deleteLecturerDeleteResourceRouteHandler = async (req, res) => {
   try {
-    const resourceId = req.params.resourceId;
+    const resourceId = req.body.resourceId;
     await ResourceModel.findByIdAndDelete(resourceId);
     res.json({ message: 'Resource deleted successfully' });
   } catch (error) {
@@ -121,7 +121,6 @@ export const deleteLecturerDeleteResourceRouteHandler = async (req, res) => {
 export const getStudentCourseResourcesRouteHandler = async (req, res) => {
   try {
     const course = req.params.course;
-    console.log(course)
     const resources = await ResourceModel.find({ course: course });
     res.json(resources);
   } catch (error) {
@@ -131,7 +130,7 @@ export const getStudentCourseResourcesRouteHandler = async (req, res) => {
 };
 export const getStudentCourseUnitResourcesRouteHandler = async (req, res) => {
   try {
-    const courseunit = req.params.courseunit;
+    const courseunit = req.body.courseunit;
     const resources = await ResourceModel.find({ courseunit: courseunit });
     res.json(resources);
   } catch (error) {
@@ -158,8 +157,8 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
         res.status(500).json({ message: 'Error submitting assignment' });
       } else {
         try {
-          const assignmentId = req.params.assignmentId;
-          const studentId = req.params.studentId;
+          const assignmentId = req.body.assignmentId;
+          const studentId = req.body.studentId;
           const submission = new SubmissionModel({
             assignment: assignmentId,
             userId: studentId,
@@ -180,7 +179,7 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   
   export const getStudentAssignmentSubmissionsRouteHandler = async (req, res) => {
     try {
-      const studentId = req.params.studentId;
+      const studentId = req.body.studentId;
       const submissions = await SubmissionModel.find({ student: studentId });
       res.json(submissions);
     } catch (error) {
@@ -202,7 +201,7 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   
   export const getStudentNotificationsRouteHandler = async (req, res) => {
     try {
-      const studentId = req.params.studentId;
+      const studentId = req.body.studentId;
       const notifications = await NotificationModel.find({ student: studentId });
       res.json(notifications);
     } catch (error) {
@@ -230,9 +229,9 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   
   export const postGroupSubmitGroupAssignmentRouteHandler = async (req, res) => {
     try {
-      const assignmentId = req.params.assignmentId;
-      const groupId = req.params.groupId;
-      const submission = new SubmissionModel({ assignment: assignmentId, group: groupId, ...req.body });
+      const assignmentId = req.body.assignmentId;
+      const userId = req.body.studentId;
+      const submission = new SubmissionModel({ assignment: assignmentId, userId: userId, ...req.body });
       await submission.save();
       res.json({ message: 'Group assignment submitted successfully' });
     } catch (error) {
@@ -245,6 +244,16 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   export const getAdminUsersRouteHandler = async (req, res) => {
     try {
       const users = await userModel.find();
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  export const getAdminLecturersRouteHandler = async (req, res) => {
+    try {
+      const users = await LecturerModel.find();
       res.json(users);
     } catch (error) {
       console.error(error);
@@ -277,13 +286,46 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   export const deleteAdminDeleteUserRouteHandler = async (req, res) => {
     try {
       const userId = req.params.userId;
-      await UserModel.findByIdAndDelete(userId);
+      await userModel.findByIdAndDelete(userId);
       res.json({ message: 'User deleted successfully' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
     }
   };
+  export const getAdminLecturerRouteHandler = async (req, res) => {
+    try {
+      const lecturerId = req.params.lecturerId;
+      const lecturer = await LecturerModel.findById(lecturerId);
+      res.json(lecturer);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const patchAdminEditLecturerRouteHandler = async (req, res) => {
+    try {
+      const lecturerId = req.params.lecturerId;
+      const lecturer = await LecturerModel.findByIdAndUpdate(lecturerId, req.body, { new: true });
+      res.json(lecturer);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  export const deleteAdminDeleteLecturerRouteHandler = async (req, res) => {
+    try {
+      const lecturerId = req.params.lecturerId;
+      await LecturerModel.findByIdAndDelete(lecturerId);
+      res.json({ message: 'Lecturer deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
   // Assignment APIs
 export const getAssignmentsRouteHandler = async (req, res) => {
     try {
@@ -298,7 +340,7 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     
     export const getAssignmentRouteHandler = async (req, res) => {
     try {
-    const assignmentId = req.params.assignmentId;
+    const assignmentId = req.body.assignmentId;
     const assignment = await AssignmentModel.findById(assignmentId);
     res.json(assignment);
     } catch (error) {
@@ -310,7 +352,7 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     
     export const postAssignmentSubmitRouteHandler = async (req, res) => {
     try {
-    const assignmentId = req.params.assignmentId;
+    const assignmentId = req.body.assignmentId;
     const submission = new SubmissionModel({ assignment: assignmentId, ...req.body });
     await submission.save();
     res.json({ message: 'Assignment submitted successfully' });
@@ -333,7 +375,7 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     
     export const getResourceRouteHandler = async (req, res) => {
     try {
-    const resourceId = req.params.resourceId;
+    const resourceId = req.body.resourceId;
     const resource = await ResourceModel.findById(resourceId);
     res.json(resource);
     } catch (error) {
@@ -355,7 +397,7 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     
     export const getSubmissionRouteHandler = async (req, res) => {
     try {
-    const submissionId = req.params.submissionId;
+    const submissionId = req.body.submissionId;
     const submission = await SubmissionModel.findById(submissionId);
     res.json(submission);
     } catch (error) {
@@ -365,30 +407,30 @@ export const getAssignmentsRouteHandler = async (req, res) => {
     };
     
     // Profile APIs
-    export const getStudentProfileRouteHandler = async (req, res) => {
-    try {
+export const getStudentProfileRouteHandler = async (req, res) => {
+  try {
     const studentId = req.params.studentId;
     const student = await userModel.findById(studentId);
     res.json(student);
-    } catch (error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
-    }
-    };
-    
-    export const getLecturerProfileRouteHandler = async (req, res) => {
-    try {
+  }
+};
+
+export const getLecturerProfileRouteHandler = async (req, res) => {
+  try {
     const lecturerId = req.params.lecturerId;
     const lecturer = await LecturerModel.findById(lecturerId);
     res.json(lecturer);
-    } catch (error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
-    }
-    };
+  }
+};
     export const postLecturerDownloadAllSubmissionsRouteHandler = async (req, res) => {
       try {
-        const assignmentId = req.params.assignmentId;
+        const assignmentId = req.body.assignmentId;
         const submissions = await SubmissionModel.find({ assignment: assignmentId });
     
         const archive = archiver('zip', {

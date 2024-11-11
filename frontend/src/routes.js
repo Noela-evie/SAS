@@ -44,7 +44,7 @@
      key: "sign-in",
      icon: <Icon fontSize="small">login</Icon>,
      route: "/authentication/sign-in",
-     component: <SignIn />,
+     component: <Login/>,
    },
    {
      type: "collapse",
@@ -52,7 +52,7 @@
      key: "sign-up",
      icon: <Icon fontSize="small">assignment</Icon>,
      route: "/authentication/sign-up",
-     component: <SignUp />,
+     component: <Register />,
    },
    {
      type: "auth",

@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from "react";
-import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
-import MDInput from "components/MDInput";
-import axios from "axios";
-
-// Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import { profileApi } from "../../appClient";
 
 const Profile = () => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const id = localStorage.getItem('id');
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -22,40 +15,27 @@ const Profile = () => {
   const [group, setGroup] = useState("");
   const [isGroupLeader, setIsGroupLeader] = useState(false);
   const [courseunit, setCourseunit] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         let response;
         if (role === "lecturer") {
-          response = await axios.get(`/lecturer/profile/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const lecturerData = response.data;
-          setName(lecturerData.name);
-          setEmail(lecturerData.email);
-          setUserId(lecturerData.userId);
-          setCourseunit(lecturerData.courseunit);
-          setCourse(lecturerData.course);
-          setPhone(lecturerData.phone);
+          response = await profileApi.getLecturerProfile(id);
         } else {
-          response = await axios.get(`/student/profile/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const userData = response.data;
-          setName(userData.name);
-          setEmail(userData.email);
-          setUserId(userData.userId);
-          setCourse(userData.course);
+          response = await profileApi.getStudentProfile(id);
+        }
+        const userData = response;
+        setName(userData.name);
+        setEmail(userData.email);
+        setUserId(userData.userId);
+        setCourse(userData.course);
+        if (role === "student") {
           setGroup(userData.group);
           setIsGroupLeader(userData.isGroupLeader);
+        } else {
+          setCourseunit(userData.courseunit);
         }
       } catch (error) {
         console.error(error);
@@ -64,136 +44,74 @@ const Profile = () => {
     fetchUserProfile();
   }, [token, role, id]);
 
-  const handleUpdatePhone = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      let response;
-      if (role === "lecturer") {
-        response = await axios.patch(
-          `/lecturer/${id}/phone`,
-          { phone },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      } else {
-        response = await axios.patch(
-          `/student/${id}/phone`,
-          { phone },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
-      if (response.status === 200) {
-        alert("Phone number updated successfully");
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  
-    
-    // Check if role is admin and return hardcoded profile
-    if (role === 'admin') {
-      return (
-        <DashboardLayout>
-      <DashboardNavbar />
-        <div class="admin-profile-container">
-        <h1 class="admin-profile-header">Admin Profile</h1>
-        <div class="admin-profile-info">
-          <h2 class="admin-name">Name: Administrator</h2>
-          <p class="admin-email">Email: SasAdmin@gmail.com</p>
-          <p class="admin-description">
-            Welcome to the Admin Profile. This is the central hub for administrative information and updates. 
-            Important notifications and emails will be sent to SasAdmin@gmail.com. 
-            Please ensure to keep this email secure, as it receives sensitive information.
-          </p>
+  // Check if role is admin and return hardcoded profile
+  if (role === 'admin') {
+    return (
+      <DashboardLayout>
+        <DashboardNavbar />
+        <div className="admin-profile-container p-4 mb-6 border-2 border-blue-500 rounded-lg">
+          <h1 className="admin-profile-header text-2xl font-bold text-blue-500 mb-2">Admin Profile</h1>
+          <div className="admin-profile-info">
+            <h2 className="admin-name text-lg">Name: Administrator</h2>
+            <p className="admin-email text-lg">Email: SasAdmin@gmail.com</p>
+            <p className="admin-description text-lg">
+              Welcome to the Admin Profile. This is the central hub for administrative information and updates.
+              Important notifications and emails will be sent to SasAdmin@gmail.com. Please ensure to keep this email secure,
+              as it receives sensitive information.
+            </p>
+          </div>
         </div>
-      </div>
       </DashboardLayout>
-      );
-    }
-  
-
+    );
+  }
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox py={3}>
-        <Grid container spacing={10}>
-          <Grid item xs="auto" lg={5}>
-            <Card>
-              <MDTypography variant="h5">Profile Information</MDTypography>
-              <MDBox pt={2} px={2}>
-                <MDTypography variant="button" color="text" fontWeight="regular">
-                  Name: {name}
-                </MDTypography>
-                <MDTypography variant="button" color="text" fontWeight="regular">
-                  Email: {email}
-                </MDTypography>
-                <MDTypography variant="button" color="text" fontWeight="regular">
-                  User Id: {userId}
-                </MDTypography>
-                {role === "student" && (
-                  <>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      Course: {course}
-                    </MDTypography>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      Group: {group}
-                    </MDTypography>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      Group Leader: {isGroupLeader ? "Yes" : "No"}
-                    </MDTypography>
-                  </>
-                )}
-                {role === "lecturer" && (
-                  <>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      Course unit: {courseunit}
-                    </MDTypography>
-                    <MDTypography variant="button" color="text" fontWeight="regular">
-                      Course: {course}
-                    </MDTypography>
-                  </>
-                )}
-              </MDBox>
-            </Card>
-          </Grid>
-          <Grid item xs="auto" lg={6}>
-            <Card>
-              <MDTypography variant="h5">Contact Information</MDTypography>
-              <MDBox pt={2} px={2}></MDBox>
-              <MDInput
-                    type="tel"
-                    label="Phone Number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                  <MDButton
-                    variant="gradient"
-                    color="info"
-                    onClick={handleUpdatePhone}
-                    disabled={loading}
-                  >
-                    {loading ? "Updating..." : "Update Phone Number"}
-                  </MDButton>
-              
-              </Card>
-            </Grid>
-          </Grid>
-        </MDBox>
-      </DashboardLayout>
-    );
-  };
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <section className="p-4 mb-6 border-2 border-blue-500 rounded-lg">
+          <h2 className="text-2xl font-bold text-blue-500 mb-2">Profile Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-blue-50 rounded-lg shadow-md p-4">
+              <p className="text-lg">
+                <b>Name:</b> {name}
+              </p>
+              <p className="text-lg">
+                <b>Email:</b> {email}
+              </p>
+              <p className="text-lg">
+                <b>User Id:</b> {userId}
+              </p>
+            </div>
+            {role === "student" && (
+              <div className="bg-blue-50 rounded-lg shadow-md p-4">
+                <p className="text-lg">
+                  <b>Course:</b> {course}
+                </p>
+                <p className="text-lg">
+                  <b>Group:</b> {group}
+                </p>
+                <p className="text-lg">
+                  <b>Group Leader:</b> {isGroupLeader ? "Yes" : "No"}
+                </p>
+              </div>
+            )}
+            {role === "lecturer" && (
+              <div className="bg-blue-50 rounded-lg shadow-md p-4">
+                <p className="text-lg">
+                  <b>Course unit:</b> {courseunit}
+                </p>
+                <p className="text-lg">
+                  <b>Course:</b> {course}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </DashboardLayout>
+  );
+};
 
-  export default Profile;
+export default Profile;
+

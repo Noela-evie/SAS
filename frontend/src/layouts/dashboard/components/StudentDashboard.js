@@ -1,6 +1,5 @@
-import '../student.css'
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { studentApi, notificationApi, profileApi } from '../../../appClient';
 
 const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState({});
@@ -16,74 +15,91 @@ const StudentDashboard = () => {
   const [assignmentId, setAssignmentId] = useState('');
   const [file, setFile] = useState(null);
   const userId = localStorage.getItem('id');
-
-  const editSubmission = async (assignmentId) => {
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await axios.patch(`/student/submit-assignment/${assignmentId}/${userId}`, formData);
-
-    console.log(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    axios.get(`/student/profile/${userId}`)
-      .then(response => {
-        setStudentProfile(response.data);
-        setIsGroupLeader(response.data.isGroupLeader);
-      })
-      .catch(error => console.error(error));
-
-    axios.get(`/assignments`, {
-      params: {
-        course: studentProfile.course
+    const fetchStudentProfile = async () => {
+      try {
+        const response = await profileApi.getStudentProfile(userId);
+        setStudentProfile(response);
+        setIsGroupLeader(response.isGroupLeader);
+        setLoaded(true);
+      } catch (error) {
+        console.error(error);
       }
-    })
-      .then(response => setAssignments(response.data))
-      .catch(error => console.error(error));
+    };
+    fetchStudentProfile();
+  }, [userId]);
 
-      axios.get('/student/course-resources', {
-        params: {
-          course: studentProfile.course
+  useEffect(() => {
+    if (loaded) {
+      const fetchAssignments = async () => {
+        try {
+          const response = await studentApi.getAllAssignments(studentProfile.course);
+          setAssignments(response);
+        } catch (error) {
+          console.error(error);
         }
-      })
-      .then(response => setResources(response.data))
-      .catch(error => console.error(error));
+      };
+      fetchAssignments();
 
-    axios.get(`/student/assignment-submissions/${userId}`)
-      .then(response => setSubmissions(response.data))
-      .catch(error => console.error(error));
+      const fetchResources = async () => {
+        try {
+          const response = await studentApi.getAllCourseResources(studentProfile.course);
+          setResources(response);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchResources();
 
-    axios.get(`/student/group-members`, {
-      params: {
-        groupname: studentProfile.groupname
+      const fetchSubmissions = async () => {
+        try {
+          const response = await studentApi.getSubmissionsByUser(userId);
+          setSubmissions(response);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchSubmissions();
+
+      if (studentProfile.groupname) {
+        const fetchGroupMembers = async () => {
+          try {
+            const response = await studentApi.getGroupMembers(studentProfile.groupname);
+            setGroupMembers(response);
+          } catch (error) {
+            console.error(error);
+          }
+        };
+        fetchGroupMembers();
       }
-    })
-      .then(response => setGroupMembers(response.data))
-      .catch(error => console.error(error));
+    }
+  }, [loaded, studentProfile]);
 
-  }, [userId, studentProfile.groupname, studentProfile.course]);
+  const editSubmission = async (assignmentId) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await studentApi.makeSubmission(assignmentId, userId, file);
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const submitAssignment = async (assignmentId) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-  
-      const response = await axios.post(`/student/submit-assignment/${assignmentId}/${userId}`, formData);
-  
+      const response = await studentApi.makeSubmission(assignmentId, userId, file);
       const notificationData = {
         studentId: userId,
-        title: response.data.deadlineDate,
+        title: response.deadlineDate,
         message: 'Your work has been submitted successfully!',
       };
-  
-      await axios.post('/student/notifications', notificationData);
-  
-      console.log(response.data);
+      await studentApi.postNotification(notificationData);
+      console.log(response);
     } catch (error) {
       console.error(error);
     }
@@ -94,123 +110,198 @@ const StudentDashboard = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await axios.post(`/group/submit-group-assignment/${assignmentId}/${groupId}`, formData);
-      console.log(response.data);
-    
-    
-  
-  const notificationData = {
-    studentId: userId,
-    title: response.data.deadlineDate, 
-    message: 'Your work has been submitted successfully!',
-  };
-
-  await axios.post('/student/notifications', notificationData);
-
-  console.log(response.data);
-} catch (error) {
-  console.error(error);
-}
-  }
-
-
-  const getResourcesByType = async (type) => {
-    try {
-      const response = await axios.get(`/student/type-resources/${type}`);
-      setResourcesByType(response.data);
+      const response = await studentApi.makeGroupSubmission(assignmentId, userId, file);
+      console.log(response);
+      const notificationData = {
+        studentId: userId,
+        title: response.deadlineDate,
+        message: 'Your work has been submitted successfully!',
+      };
+      await notificationApi.postNotification(notificationData);
+      console.log(response);
     } catch (error) {
       console.error(error);
     }
   };
 
+  const getResourcesByType = async (type) => {
+    try {
+      const response = await studentApi.getResourcesByType(type);
+      setResourcesByType(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (!loaded) {
+    return <div className="text-center">Loading...</div>;
+  }
+
   return (
-    <div className="student-dashboard">
-      <h1>Student Dashboard</h1>
-      <div className="dashboard-content">
-        <h2>Assignments</h2>
-        <ul>
-        {assignments.map(assignment => (
-  <li key={assignment._id}>
-    {assignment.assignment} - {assignment.deadlineDate}
-    <a href={assignment.assignmentFile} download>Download Assignment</a>
-    <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-    <button onClick={() => submitAssignment(assignment._id)}>Submit</button>
-    {assignment.submission && (
-      <div>
-        <p>Submission: {assignment.submission.fileName}</p>
-        <button onClick={() => editSubmission(assignment._id)}>Edit Submission</button>
-      </div>
-    )}
-  </li>
-))}
-        </ul>
-      </div>
-
-    
-     <div className="dashboard-content">
-     <h2>Resources for {studentProfile.course}</h2>
-     <ul>
-     {resources.map(resource => (
-      <li key={resource._id}>
-        {resource.resourceName} - {resource.resourceType}
-        <a href={resource.resourceContent} download>Download</a>
-       </li>
-      ))}
-     </ul>
-     </div>
-
-      <div className="dashboard-content">
-        <h2>Resources by Type</h2>
-        <select onChange={(e) => getResourcesByType(e.target.value)}>
+    <div className="student-dashboard container mx-auto p-4 md:p-6 lg:p-8">
+      <section className="p-4 mb-6">
+        <h1 className="text-4xl font-bold text-blue-800 mb-8">Student Dashboard</h1>
+      </section>
+  
+      <section className="bg-white p-4 mb-6 rounded-lg w-full">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {assignments.map((assignment) => (
+            <div key={assignment._id} className="bg-blue-50 rounded-lg shadow-md p-4">
+              <p className="text-lg"><b>Name: </b>{assignment.assignmentName}</p>
+            <p className="text-lg">
+              <b>Deadline: </b>
+              {new Date(assignment.deadlineDate).toLocaleString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+              })}
+            </p>            
+            <p className="text-lg"><b>Type: </b>{assignment.Type}</p>
+            <p className="text-lg"><b>Course: </b>{assignment.course}</p>
+            <p className="text-lg"><b>Status: </b>{assignment.status}</p>
+              <a
+                href={assignment.assignmentFile}
+                download
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Download Assignment
+              </a>
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="mt-2"
+              />
+              <button
+                onClick={() => submitAssignment(assignment._id)}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+              >
+                Submit
+              </button>
+              {assignment.submission && (
+                <div className="mt-4">
+                  <p>Submission: {assignment.submission.fileName}</p>
+                  <button
+                    onClick={() => editSubmission(assignment._id)}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Edit Submission
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+  
+      <section className="border-2 border-blue-500 rounded-lg p-4 mb-6">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Resources</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {resources.map((resource) => (
+            <div key={resource._id} className="bg-white rounded-lg shadow-md p-4">
+              <p className="text-lg"><b>Name: </b>{resource.resourceName}</p>
+                <p className="text-lg"><b>Type: </b>{resource.resourceType}</p>
+                <p className="text-lg"><b>Course Unit: </b>{resource.courseunit}</p>
+                <p className="text-lg"><b>Course: </b>{resource.course}</p>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={() => window.open(resource.resourceContent, '_blank')}
+              >
+                Download
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+  
+      <section className="bg-white p-4 mb-6">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Resources by Type</h2>
+        <select
+          onChange={(e) => getResourcesByType(e.target.value)}
+          className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 mb-6 pr-8 rounded focus:outline-none focus:shadow-outline"
+        >
           <option value="">Select Resource Type</option>
           <option value="Notes">Notes</option>
           <option value="Textbooks">Textbooks</option>
           <option value="Pastpapers">Pastpapers</option>
         </select>
-        <ul>
-          {resourcesByType.map(resource => (
-            <li key={resource._id}>
-              {resource.resourceName} - {resource.resourceType}
-              <a href={resource.resourceContent} download>Download</a>
-            </li>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {resourcesByType.map((resource) => (
+            <div key={resource._id} className="bg-blue-50 rounded-lg shadow-md p-4">
+              <div className="flex justify-between">
+                <p className="text-lg">{resource.resourceName}</p>
+              </div>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={() => window.open(resource.resourceContent, '_blank')}
+              >
+                Download
+              </button>
+            </div>
           ))}
-        </ul>
-      </div>
-
-      <div className="dashboard-content">
-        <h2>Submissions</h2>
-        <ul>
-          {submissions.map(submission => (
-            <li key={submission._id}>
-              {submission.assignmentId} - {submission.submittedAt}
-              <a href={submission.file} download>Download</a>
-            </li>
+        </div>
+      </section>
+      <section className="border-2 border-blue-500 p-4 mb-6">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Submissions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {submissions.map((submission) => (
+            <div key={submission._id} className="bg-white rounded-lg shadow-md p-4 ">
+                <p className="text-1xl"><b>Submitted on: </b>
+                {new Date(submission.submittedAt).toLocaleString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+              })}</p>
+              <a
+                href={submission.file}
+                download
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Download Submission
+              </a>
+            </div>
           ))}
-        </ul>
-      </div>
+        </div>
+      </section>
 
       {isGroupLeader && (
-        <div className="dashboard-content">
-          <h2>Group Members</h2>
-          <ul>
-            {groupMembers.map(member => (
-              <li key={member._id}>{member.name}</li>
+        <section className="bg-white p-4 mb-6">
+          <h2 className="text-2xl font-bold text-blue-500 mb-2">Group Members</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {groupMembers.map((member) => (
+              <div key={member._id} className="bg-blue-50 rounded-lg shadow-md p-4">
+                <p className="text-lg">{member.name}</p>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
       )}
 
       {isGroupLeader && (
-        <div className="dashboard-content">
-          <h2>Submit Group Assignment</h2>
+        <section className="bg-gray-50 p-4 mb-6">
+          <h2 className="text-2xl font-bold text-blue-500 mb-2">Submit Group Assignment</h2>
           <form onSubmit={(e) => submitGroupAssignment(e)}>
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} required />
-            <button type="submit">Submit</button>
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files[0])}
+              required
+              className="mt-2"
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+            >
+              Submit
+            </button>
           </form>
-        </div>
+        </section>
       )}
     </div>
-  );
-};
+);
+}
 
-export default StudentDashboard;
+export default StudentDashboard
