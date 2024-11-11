@@ -10,7 +10,7 @@ import ReseedAction from "./mongo/ReseedAction.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 const app = express();
 app.use(express.json());
 
