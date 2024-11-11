@@ -42,6 +42,23 @@ const StudentDashboard = () => {
         }
       };
       fetchAssignments();
+    }
+  },
+   [loaded, studentProfile.groupname] );
+
+      useEffect(() => {
+        if (loaded && studentProfile.groupname) {
+          const fetchGroupMembers = async () => {
+            try {
+              const response = await studentApi.getGroupMembers(studentProfile.groupname);
+              setGroupMembers(response);
+            } catch (error) {
+              console.error(error);
+            }
+          };
+          fetchGroupMembers();
+        }
+      }, [loaded, studentProfile.groupname]);
 
       const fetchResources = async () => {
         try {
@@ -63,19 +80,20 @@ const StudentDashboard = () => {
       };
       fetchSubmissions();
 
-      if (studentProfile.groupname) {
-        const fetchGroupMembers = async () => {
-          try {
-            const response = await studentApi.getGroupMembers(studentProfile.groupname);
-            setGroupMembers(response);
-          } catch (error) {
-            console.error(error);
-          }
-        };
-        fetchGroupMembers();
-      }
-    }
-  }, [loaded, studentProfile]);
+      useEffect(() => {
+        if (loaded && studentProfile.groupname) {
+          const fetchGroupMembers = async () => {
+            try {
+              const response = await studentApi.getGroupMembers(studentProfile.groupname);
+              setGroupMembers(response);
+            } catch (error) {
+              console.error(error);
+            }
+          };
+          fetchGroupMembers();
+        }
+      }, [loaded, studentProfile.groupname]);
+    
 
   const editSubmission = async (assignmentId) => {
     try {
@@ -145,7 +163,7 @@ const StudentDashboard = () => {
   
       <section className="bg-white p-4 mb-6 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="text-1xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignments.map((assignment) => (
             <div key={assignment._id} className="bg-blue-50 rounded-lg shadow-md p-4">
               <p className="text-lg"><b>Name: </b>{assignment.assignmentName}</p>
@@ -160,12 +178,11 @@ const StudentDashboard = () => {
               })}
             </p>            
             <p className="text-lg"><b>Type: </b>{assignment.Type}</p>
-            <p className="text-lg"><b>Course: </b>{assignment.course}</p>
             <p className="text-lg"><b>Status: </b>{assignment.status}</p>
               <a
                 href={assignment.assignmentFile}
                 download
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
               >
                 Download Assignment
               </a>
@@ -176,7 +193,7 @@ const StudentDashboard = () => {
               />
               <button
                 onClick={() => submitAssignment(assignment._id)}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded mt-2"
               >
                 Submit
               </button>
@@ -185,7 +202,7 @@ const StudentDashboard = () => {
                   <p>Submission: {assignment.submission.fileName}</p>
                   <button
                     onClick={() => editSubmission(assignment._id)}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
                   >
                     Edit Submission
                   </button>
@@ -206,7 +223,7 @@ const StudentDashboard = () => {
                 <p className="text-lg"><b>Course Unit: </b>{resource.courseunit}</p>
                 <p className="text-lg"><b>Course: </b>{resource.course}</p>
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded"
                 onClick={() => window.open(resource.resourceContent, '_blank')}
               >
                 Download
@@ -234,8 +251,9 @@ const StudentDashboard = () => {
                 <p className="text-lg">{resource.resourceName}</p>
               </div>
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => window.open(resource.resourceContent, '_blank')}
+                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
+                href={resource.resourceContent}
+                download
               >
                 Download
               </button>
@@ -259,7 +277,7 @@ const StudentDashboard = () => {
               <a
                 href={submission.file}
                 download
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
               >
                 Download Submission
               </a>
@@ -268,20 +286,31 @@ const StudentDashboard = () => {
         </div>
       </section>
 
-      {isGroupLeader && (
-        <section className="bg-white p-4 mb-6">
-          <h2 className="text-2xl font-bold text-blue-500 mb-2">Group Members</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groupMembers.map((member) => (
-              <div key={member._id} className="bg-blue-50 rounded-lg shadow-md p-4">
-                <p className="text-lg">{member.name}</p>
+              {isGroupLeader && (
+          <section className="bg-white p-4 mb-6">
+            <h2 className="text-2xl font-bold text-blue-500 mb-2">Group Members</h2>
+            {studentProfile.groupname && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {groupMembers.map((member) => (
+                    <div key={member._id} className="bg-blue-50 rounded-lg shadow-md p-4">
+                      <p className="text-lg">{member.name}</p>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => fetchGroupMembers(studentProfile.groupname)}
+                  className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded mt-2"
+                >
+                  Refresh Group Members
+                </button>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            )}
+          </section>
+        )}
 
-      {isGroupLeader && (
+
+      {isGroupLeader && assignments.some((assignment) => assignment.Type === 'group') && (
         <section className="bg-gray-50 p-4 mb-6">
           <h2 className="text-2xl font-bold text-blue-500 mb-2">Submit Group Assignment</h2>
           <form onSubmit={(e) => submitGroupAssignment(e)}>
@@ -293,7 +322,7 @@ const StudentDashboard = () => {
             />
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+              className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded mt-2"
             >
               Submit
             </button>

@@ -82,7 +82,7 @@ function Register() {
 
       const groupNameRegex = /^Group [A-Z]$/i;
     if (!groupNameRegex.test(inputs.group.trim())) {
-      setErrors({ ...errors, groupError: true });
+      setErrors({ ...errors, groupnameError: true });
       return;
     }
 
@@ -104,7 +104,7 @@ function Register() {
       userId: inputs.userId,
       password: inputs.password,
       course: inputs.course,
-      group: inputs.group,
+      groupname: inputs.groupname,
       isGroupLeader: inputs.isGroupLeader,
     };
 
@@ -117,7 +117,7 @@ function Register() {
         userId: "",
         password: "",
         course: "",
-        group: "",
+        groupname: "",
         isGroupLeader: false,
         agree: false,
       });
@@ -128,7 +128,7 @@ function Register() {
         userIdError: false,
         passwordError: false,
         courseError: false,
-        groupError: false,
+        groupnameError: false,
         isGroupLeaderError: false,
         agreeError: false,
         error: false,
@@ -273,12 +273,12 @@ function Register() {
               </MDTypography>
               <MDInput
                 type="text"
-                name="group"
-                value={inputs.group}
+                name="groupname"
+                value={inputs.groupname}
                 onChange={changeHandler}
-                error={errors.groupError}
+                error={errors.groupnameError}
               />
-              {errors.groupError && (
+              {errors.groupnameError && (
                 <MDTypography variant="caption" color="error" fontWeight="light">
                   Please enter a valid group name (e.g., Group A, Group B, etc.)
                 </MDTypography>
