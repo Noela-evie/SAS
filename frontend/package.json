@@ -38,6 +38,10 @@
     "lint": "eslint --fix"
   },
   "eslintConfig": {
+  "rules": {
+    "no-console": "off",
+    "no-warning-comments": "off"
+  }
     "extends": [
       "react-app",
       "react-app/jest"
