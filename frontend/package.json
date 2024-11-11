@@ -41,7 +41,7 @@
   "rules": {
     "no-console": "off",
     "no-warning-comments": "off"
-  }
+  },
     "extends": [
       "react-app",
       "react-app/jest"
