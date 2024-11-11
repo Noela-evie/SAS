@@ -3,8 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "App";
 import { AuthContextProvider } from "context";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css';
+
 
 
 // Material Dashboard 2 React Context Provider
