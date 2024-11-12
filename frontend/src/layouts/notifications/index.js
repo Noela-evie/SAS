@@ -24,15 +24,15 @@ const Notifications = () => {
     fetchNotifications();
   }, [id]);
 
-  const handleMarkAsRead = async (notificationId) => {
+  const handleMarkAsRead = async () => {
     try {
-      await notificationApi.markAsRead(notificationId);
-      setNotifications(notifications.filter((notification) => notification._id !== notificationId));
+      await notificationApi.updateNotification(id);
+      const response = await notificationApi.getNotifications(id);
+      setNotifications(response);
     } catch (error) {
       console.error(error);
     }
   };
-
   const displayNotifications = () => {
     if (role === 'student') {
       return (
@@ -40,15 +40,20 @@ const Notifications = () => {
           <h1 className="text-4xl font-bold text-blue-800 mb-8">Notifications</h1>
           {notifications.length > 0 ? (
             notifications.map((notification) => (
-              <div key={notification._id} className="bg-white p-4 mb-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-blue-500 mb-2">{notification.title}</h2>
+              <div
+                key={notification._id}
+                className={`notification ${notification.read ? 'read' : 'unread'}`}
+                onClick={() => handleMarkAsRead(notification._id)}
+              >
+                <div className="notification-header">
+                  <h2 className="text-2xl font-bold text-blue-500 mb-2">{notification.title}</h2>
+                  <span
+                    className={`status-dot ${notification.read ? 'read-dot' : 'unread-dot'} ${
+                      notification.read ? '' : 'pulse'
+                    }`}
+                  ></span>
+                </div>
                 <p className="text-lg">{notification.message}</p>
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => handleMarkAsRead(notification._id)}
-                >
-                  Mark as Read
-                </button>
               </div>
             ))
           ) : (

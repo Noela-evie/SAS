@@ -56,7 +56,7 @@ function Login() {
     e.preventDefault();
   
 
-    if (inputs.userId.trim().length < 4 && userId.trim().length > 15) {
+    if (inputs.userId.trim().length < 4 || inputs.userId.trim().length > 15) {
       setErrors({ ...errors, userIdError: true });
       return;
     }
@@ -65,6 +65,7 @@ function Login() {
       setErrors({ ...errors, passwordError: true });
       return;
     }
+    
 
     const loginData = {
       userId: inputs.userId,
@@ -79,10 +80,11 @@ try {
     setCredentialsError(res.message);
   } else {
     setCredentialsError(res.errors[0].detail);
-    setInputs({ userId: "", password: "", });
-    setErrors({ userIdError: false, passwordError: false, });
+    setInputs({ userId: "", password: "" });
+    setErrors({ userIdError: false, passwordError: false });
   }
 }
+ 
   }
 
   return (
@@ -128,7 +130,11 @@ try {
                 name="userId"
                 onChange={changeHandler}
                 error={errors.userIdError}
-              />
+              />{errors.userIdError && (
+                <MDTypography variant="caption" color="error" fontWeight="light">
+                  UserId must be between 4 and 15 characters
+                </MDTypography>
+              )}
             </MDBox>
             
             <MDBox mb={2}>
@@ -140,7 +146,12 @@ try {
                 value={inputs.password}
                 onChange={changeHandler}
                 error={errors.passwordError}
-              />
+              />{errors.passwordError && (
+                <MDTypography variant="caption" color="error" fontWeight="light">
+                  Password must be at least 8 characters
+                </MDTypography>
+              )}
+            
               <MDBox mb={2}>
   
   <MDBox display="flex" alignItems="center" ml={-1} mt={1}>
@@ -175,9 +186,9 @@ try {
               </MDButton>
             </MDBox>
             {credentialsErrors && (
-              <MDTypography variant="caption" color="error" fontWeight="light">
-                {credentialsErrors}
-              </MDTypography>
+            <MDTypography variant="caption" color="error" fontWeight="light">
+              {credentialsErrors}
+            </MDTypography>
             )}
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">

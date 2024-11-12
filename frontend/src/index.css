@@ -6,3 +6,47 @@
 *{
     font-family: Outfit;
 }
+
+.notification {
+  @apply bg-white p-4 mb-6 rounded-lg shadow-md transition-all;
+}
+
+.unread {
+  @apply border-l-4 border-green-500;
+}
+
+.read {
+  @apply border-l-4 border-blue-500;
+}
+
+.notification-header {
+  @apply flex justify-between;
+}
+
+.status-dot {
+  @apply w-6 h-6 rounded-full;
+}
+
+.unread-dot {
+  @apply bg-green-500;
+}
+
+.read-dot {
+  @apply bg-blue-500;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

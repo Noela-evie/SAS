@@ -14,7 +14,6 @@ dotenv.config();
 const PORT = process.env.PORT;
 const app = express();
 
-const API_BASE_URL = process.env.SEMANTIC_SCHOLAR_API;
 
 const whitelist = [process.env.APP_URL_CLIENT];
 const corsOptions = {

@@ -201,7 +201,7 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   
   export const getStudentNotificationsRouteHandler = async (req, res) => {
     try {
-      const studentId = req.body.studentId;
+      const studentId = req.params.studentId;
       const notifications = await NotificationModel.find({ student: studentId });
       res.json(notifications);
     } catch (error) {
@@ -212,10 +212,11 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
   
   export const postStudentNotificationsRouteHandler = async (req, res) => {
     try {
+      
       const { studentId, title, message } = req.body;
   
       await NotificationModel.create({
-        student: studentId,
+        userId: studentId,
         title,
         message,
       });
@@ -226,6 +227,34 @@ export const getStudentResourcesByTypeRouteHandler = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
+
+  export const updateStudentNotificationsRouteHandler = async (req, res) => {
+    try {
+      const studentId = req.params.studentId;
+  
+      // Validate studentId
+      if (!studentId) {
+        return res.status(400).json({ message: 'Student ID is required' });
+      }
+  
+      // Update notifications
+      const updateResult = await NotificationModel.updateMany(
+        { userId: studentId, read: false },
+        { $set: { read: true } }
+      );
+  
+      // Check if any notifications were updated
+      if (updateResult.modifiedCount === 0) {
+        return res.status(404).json({ message: 'No notifications found for the student' });
+      }
+  
+      res.status(200).json({ message: 'Notifications marked as read successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
   
   export const postGroupSubmitGroupAssignmentRouteHandler = async (req, res) => {
     try {

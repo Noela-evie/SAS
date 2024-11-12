@@ -17,7 +17,6 @@ import StudentDashboard from "layouts/dashboard/components/StudentDashboard";
 import { useAuth } from "context/index"; 
 function Dashboard() {
   const { role } = useAuth(); 
-  console.log("Role:", role);
 
   // Render specific dashboard based on role
   const renderDashboard = () => {

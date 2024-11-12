@@ -65,10 +65,11 @@ function Register() {
       return;
     }
 
-    if (inputs.userId.trim().length < 4 && userId.trim().length > 8) {
+    if (inputs.userId.trim().length < 4 || inputs.userId.trim().length > 15) {
       setErrors({ ...errors, userIdError: true });
       return;
     }
+
 
     if (inputs.email.trim().length === 0 || !inputs.email.trim().match(mailFormat)) {
       setErrors({ ...errors, emailError: true });
@@ -138,7 +139,7 @@ function Register() {
       setErrors({ ...errors, error: true, errorText: err.message });
       console.error(err);
     }
-  };
+  }
 
   return (
     <CoverLayout image={bgImage}>
@@ -226,7 +227,7 @@ function Register() {
               />
               {errors.userIdError && (
                 <MDTypography variant="caption" color="error" fontWeight="light">
-                  The userId must have 14 characters
+                  The userId must have atleast 4 characters and at most 14 characters
                 </MDTypography>
               )}
             </MDBox>
@@ -332,9 +333,10 @@ function Register() {
               </MDTypography>
             )}
             {errors.error && (
-              <MDTypography variant="caption" color="error" fontWeight="light">
-                {errors.errorText}
-              </MDTypography>
+            <MDTypography variant="caption" color="error" fontWeight="light">
+              {errors.errorText}
+            </MDTypography>
+
             )}
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth type="submit">

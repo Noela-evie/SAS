@@ -16,6 +16,7 @@ import {
   getStudentGroupMembersRouteHandler,
   getStudentNotificationsRouteHandler,
   postStudentNotificationsRouteHandler,
+  updateStudentNotificationsRouteHandler,
   // Group APIs
   postGroupSubmitGroupAssignmentRouteHandler,
   // Admin APIs
@@ -60,8 +61,9 @@ router.get("/student/type-resources/:type", getStudentResourcesByTypeRouteHandle
 router.post('/student/submit-assignment/:assignmentId/:studentId', postStudentSubmitAssignmentRouteHandler);
 router.get("/student/assignment-submissions/:studentId", getStudentAssignmentSubmissionsRouteHandler);
 router.get("/student/group-members/:groupname", getStudentGroupMembersRouteHandler);
-router.get("/student/notifications/get", getStudentNotificationsRouteHandler);
-router.post("/student/notifications", postStudentNotificationsRouteHandler);
+router.get("/student/notifications/get/:studentId", getStudentNotificationsRouteHandler);
+router.post("/student/notifications/fetch", postStudentNotificationsRouteHandler);
+router.patch("/student/notifications/:studentId", updateStudentNotificationsRouteHandler);
 
 
 // Group Routes

@@ -19,6 +19,7 @@ const StudentDashboard = () => {
   const userId = localStorage.getItem('id');
   const [loaded, setLoaded] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedFile, setSelectedFile] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
 
@@ -49,7 +50,7 @@ const StudentDashboard = () => {
       fetchAssignments();
     }
   },
-   [loaded, studentProfile.groupname] );
+   [loaded, studentProfile.course] );
 
       useEffect(() => {
         if (loaded && studentProfile.groupname) {
@@ -111,37 +112,42 @@ const StudentDashboard = () => {
     }
   };
 
-  const submitAssignment = async (assignmentId) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await studentApi.makeSubmission(assignmentId, userId, file);
-      const notificationData = {
-        studentId: userId,
-        title: response.deadlineDate,
-        message: 'Your work has been submitted successfully!',
-      };
-      await studentApi.postNotification(notificationData);
-      console.log(response);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const submitGroupAssignment = async (e) => {
+  const submitAssignment = async (e, assignmentId) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+  
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await studentApi.makeGroupSubmission(assignmentId, userId, file);
-      console.log(response);
+      const response = await studentApi.makeSubmission(assignmentId, userId, formData);
       const notificationData = {
         studentId: userId,
-        title: response.deadlineDate,
-        message: 'Your work has been submitted successfully!',
+        title: 'New Submission',
+        message: `Submission was recieved successfully!`,
       };
       await notificationApi.postNotification(notificationData);
+      alert('Submission successful! You have received a notification.');
+      setSelectedFile(false);
+      e.target.value = null; // Reset file input
+    } catch (error) {
+      console.error(error);
+      alert('Error submitting assignment: ' + error.message);
+    }
+  };
+  const submitGroupAssignment = async (e, assignmentId) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const response = await studentApi.makeGroupSubmission(assignmentId, userId, formData);
       console.log(response);
+      const notificationData = {
+        studentId: userId,
+        title: 'Group Assignment Submission',
+        message: `Your group submission has been submitted successfully!`,
+      };
+      await notificationApi.postNotification(notificationData);
+      alert('Submission successful! You have received a notification.');
+      setFile(null); 
     } catch (error) {
       console.error(error);
     }
@@ -188,52 +194,44 @@ const StudentDashboard = () => {
       <section className="bg-white p-4 mb-6 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
         <div className="text-1xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assignments.map((assignment) => (
-            <div key={assignment._id} className="bg-blue-50 rounded-lg shadow-md p-4">
-              <p className="text-lg"><b>Name: </b>{assignment.assignmentName}</p>
-            <p className="text-lg">
-              <b>Deadline: </b>
-              {new Date(assignment.deadlineDate).toLocaleString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-              })}
-            </p>
-            <p className="text-lg"><b>Type: </b>{assignment.Type}</p>
-            <p className="text-lg"><b>Status: </b>{assignment.status}</p>
-              <a
-                href={assignment.assignmentFile}
-                download
-                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
-              >
-                Download Assignment
-              </a>
-              <input
-                type="file"
-                onChange={(e) => setFile(e.target.files[0])}
-                className="mt-2"
-              />
-              <button
-                onClick={() => submitAssignment(assignment._id)}
-                className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded mt-2"
-              >
-                Submit
-              </button>
-              {assignment.submission && (
-                <div className="mt-4">
-                  <p>Submission: {assignment.submission.fileName}</p>
-                  <button
-                    onClick={() => editSubmission(assignment._id)}
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
-                  >
-                    Edit Submission
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+        {assignments.map((assignment) => (
+  <div key={assignment._id} className="bg-blue-50 rounded-lg shadow-md p-4">
+    <p className="text-lg"><b>Name: </b>{assignment.assignmentName}</p>
+    <p className="text-lg"> <b>Deadline: </b> 
+      {new Date(assignment.deadlineDate).toLocaleString('en-GB', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric', 
+        hour: 'numeric', 
+        minute: 'numeric', 
+      })}
+    </p>
+    <p className="text-lg"><b>Type: </b>{assignment.Type}</p>
+    <p className="text-lg"><b>Status: </b>{assignment.status}</p>
+    <a href={assignment.assignmentFile} download className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded" > 
+      Download Assignment 
+    </a>
+    <input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} className="mt-2" />
+    <button 
+      onClick={(e) => submitAssignment(e, assignment._id)} 
+      className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded mt-2"
+    > 
+      Submit 
+    </button>
+    {assignment.submission && (
+      <div className="mt-4">
+        <p>Submission: {assignment.submission.fileName}</p>
+        <button 
+          onClick={() => editSubmission(assignment._id)} 
+          className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
+        > 
+          Edit Submission 
+        </button>
+      </div>
+    )}
+  </div>
+))}
+
         </div>
       </section>
   

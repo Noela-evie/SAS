@@ -25,17 +25,17 @@ const studentApi = {
       return response.data;
     },
   
-    makeSubmission: async (assignmentId, studentId, file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await axios.post(`/student/submit-assignment/${assignmentId}/${studentId}`, formData);
+    makeSubmission: async (assignmentId, studentId, formData) => {
+      const response = await axios.post(`/student/submit-assignment/${assignmentId}/${studentId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     },
   
-    makeGroupSubmission: async (assignmentId, studentId, file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await axios.post(`/group/submit-group-assignment/${assignmentId}`, {formData, studentId});
+    makeGroupSubmission: async (assignmentId, studentId, formData) => {
+      const response = await axios.post(`/group/submit-assignment/${assignmentId}/${studentId}`, formData);
       return response.data;
     },
   
@@ -164,12 +164,16 @@ const studentApi = {
   // Notifications
   const notificationApi = {
     getNotifications: async (studentId) => {
-      const response = await axios.get('/student/notifications/get', { studentId });
+      const response = await axios.get(`/student/notifications/get/${studentId}`);
       return response.data;
     },
   
     postNotification: async (notificationData) => {
-      const response = await axios.post('/student/notifications', notificationData);
+      const response = await axios.post(`/student/notifications/fetch`, notificationData);
+      return response.data;
+    },
+    updateNotification: async (studentId) => {
+      const response = await axios.patch(`/student/notifications/${studentId}`);
       return response.data;
     },
   };
