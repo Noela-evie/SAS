@@ -30,7 +30,7 @@ function Register() {
     userId: "",
     password: "",
     course: "",
-    group: "",
+    groupname: "",
     isGroupLeader: false,
     agree: false,
   });
@@ -41,7 +41,7 @@ function Register() {
     userIdError: false,
     passwordError: false,
     courseError: false,
-    groupError: false,
+    groupnameError: false,
     isGroupLeaderError: false,
     agreeError: false,
     error: false,
@@ -81,7 +81,7 @@ function Register() {
     }
 
       const groupNameRegex = /^Group [A-Z]$/i;
-    if (!groupNameRegex.test(inputs.group.trim())) {
+    if (!groupNameRegex.test(inputs.groupname.trim())) {
       setErrors({ ...errors, groupnameError: true });
       return;
     }
