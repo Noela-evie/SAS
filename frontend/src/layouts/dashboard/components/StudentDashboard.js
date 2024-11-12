@@ -93,7 +93,7 @@ const StudentDashboard = () => {
           fetchGroupMembers();
         }
       }, [loaded, studentProfile.groupname]);
-    
+
 
   const editSubmission = async (assignmentId) => {
     try {
@@ -160,7 +160,33 @@ const StudentDashboard = () => {
       <section className="p-4 mb-6">
         <h1 className="text-4xl font-bold text-blue-800 mb-8">Student Dashboard</h1>
       </section>
-  
+
+      {/* Paper Search Section */}
+      <section className="bg-white p-4 mb-6 rounded-lg w-full">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Semantic Scholar Paper Search</h2>
+        <form onSubmit={handlePaperSearch}>
+          <input
+            type="text"
+            value={paperId}
+            onChange={(e) => setPaperId(e.target.value)}
+            placeholder="Enter Paper ID"
+            className="border p-2 rounded mr-4"
+          />
+          <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded">
+            Search
+          </button>
+        </form>
+        {paperDetails && (
+          <div className="mt-4 p-4 border rounded-lg shadow">
+            <h3 className="text-xl font-bold">{paperDetails.title}</h3>
+            <p><b>Authors:</b> {paperDetails.authors.map(author => author.name).join(', ')}</p>
+            <p><b>Year:</b> {paperDetails.year}</p>
+            <p><b>Venue:</b> {paperDetails.venue}</p>
+            <p><b>Abstract:</b> {paperDetails.abstract}</p>
+          </div>
+        )}
+      </section>
+
       <section className="bg-white p-4 mb-6 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
         <div className="text-1xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -176,7 +202,7 @@ const StudentDashboard = () => {
                 hour: 'numeric',
                 minute: 'numeric',
               })}
-            </p>            
+            </p>
             <p className="text-lg"><b>Type: </b>{assignment.Type}</p>
             <p className="text-lg"><b>Status: </b>{assignment.status}</p>
               <a
