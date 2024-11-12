@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { studentApi, notificationApi, profileApi } from '../../../appClient';
+import axios from 'axios';
 
 const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState({});
@@ -16,6 +17,9 @@ const StudentDashboard = () => {
   const [file, setFile] = useState(null);
   const userId = localStorage.getItem('id');
   const [loaded, setLoaded] = useState(false);
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
 
   useEffect(() => {
     const fetchStudentProfile = async () => {
@@ -155,34 +159,58 @@ const StudentDashboard = () => {
     return <div className="text-center">Loading...</div>;
   }
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query) return;
+
+    try {
+      const response = await axios.get(`/api/search`, {
+        params: { query }
+      });
+      setSearchResults(response.data.data); // Assumes data contains an array of results
+    } catch (error) {
+      console.error('Error fetching search results:', error.message);
+    }
+  };
+
+
+
   return (
     <div className="student-dashboard container mx-auto p-4 md:p-6 lg:p-8">
       <section className="p-4 mb-6">
         <h1 className="text-4xl font-bold text-blue-800 mb-8">Student Dashboard</h1>
       </section>
 
-      {/* Paper Search Section */}
-      <section className="bg-white p-4 mb-6 rounded-lg w-full">
-        <h2 className="text-2xl font-bold text-blue-500 mb-2">Semantic Scholar Paper Search</h2>
-        <form onSubmit={handlePaperSearch}>
+        {/* Search Section */}
+        <section className="bg-white p-4 mb-6 rounded-lg w-full">
+        <h2 className="text-2xl font-bold text-blue-500 mb-2">Search Semantic Scholar Papers</h2>
+        <form onSubmit={handleSearch}>
           <input
             type="text"
-            value={paperId}
-            onChange={(e) => setPaperId(e.target.value)}
-            placeholder="Enter Paper ID"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter keywords, author name, or topic"
             className="border p-2 rounded mr-4"
           />
           <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded">
             Search
           </button>
         </form>
-        {paperDetails && (
-          <div className="mt-4 p-4 border rounded-lg shadow">
-            <h3 className="text-xl font-bold">{paperDetails.title}</h3>
-            <p><b>Authors:</b> {paperDetails.authors.map(author => author.name).join(', ')}</p>
-            <p><b>Year:</b> {paperDetails.year}</p>
-            <p><b>Venue:</b> {paperDetails.venue}</p>
-            <p><b>Abstract:</b> {paperDetails.abstract}</p>
+
+        {searchResults.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-xl font-bold">Search Results</h3>
+            <ul>
+              {searchResults.map((paper) => (
+                <li key={paper.paperId} className="mt-4 p-4 border rounded-lg shadow">
+                  <h4 className="text-lg font-bold">{paper.title}</h4>
+                  <p><b>Authors:</b> {paper.authors.map((author) => author.name).join(', ')}</p>
+                  <p><b>Year:</b> {paper.year}</p>
+                  <p><b>Venue:</b> {paper.venue}</p>
+                  <p><b>Abstract:</b> {paper.abstract}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </section>
@@ -360,3 +388,4 @@ const StudentDashboard = () => {
 }
 
 export default StudentDashboard
+
