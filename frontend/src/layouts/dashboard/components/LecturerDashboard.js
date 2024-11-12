@@ -1,6 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { lecturerApi, profileApi } from '../../../appClient';
+import BookSearch from './Booksearch';
+
 
 const LecturerDashboard = () => { 
   const lecturerId = localStorage.getItem('id'); 
@@ -151,6 +152,9 @@ const LecturerDashboard = () => {
         <h1 className="text-center text-4xl font-bold text-blue-800 mb-8">Welcome to your Dashboard!</h1>
       </section>
   
+      <section className='p-4 mb-6  text-blue-800'><BookSearch /></section>
+
+
       <section className="p-4 mb-6 border-2 border-blue-500 rounded-lg">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Upload Resource</h2>
         <div className="grid grid-cols-1 gap-6">

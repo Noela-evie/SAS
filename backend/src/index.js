@@ -34,27 +34,33 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json({ type: "application/json", strict: false }));
 
-app.get('/api/search', async (req, res) => {
-  const { query } = req.query; // Expect a query parameter from the frontend
-  if (!query) {
-    return res.status(400).json({ error: 'A search query is required.' });
+app.get('/api/books', async (req, res) => {
+  const { title, page = 1 } = req.query;
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
   }
+
   try {
-    // Use the Semantic Scholar search endpoint with the query parameter
-    const response = await axios.get(`${API_BASE_URL}/paper/search`, {
+    // Send request to Open Library API
+    const response = await axios.get(`https://openlibrary.org/search.json`, {
       params: {
-        query,
-        fields: 'title,authors,abstract,venue,year', // Fields to return in the response
-        limit: 10, // Number of results to return
+        title,
+        page,
       },
     });
-    res.json(response.data);
+
+    // Limit results
+    const limitedResults = response.data.docs.slice(offset, offset + limit);
+
+    res.json({ ...response.data, docs: limitedResults });
   } catch (error) {
-    console.error('Error searching papers:', error.message);
-    res.status(500).send('Server Error');
+    console.error('Error fetching books:', error);
+    res.status(500).json({ error: 'Error fetching data from Open Library API' });
   }
 });
-
 app.use("/", authRoutes);
 app.use("/", allRoutes); 
 

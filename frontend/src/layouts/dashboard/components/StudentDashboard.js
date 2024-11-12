@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { studentApi, notificationApi, profileApi } from '../../../appClient';
 import axios from 'axios';
+import BookSearch from './Booksearch';
 
 const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState({});
@@ -181,39 +182,8 @@ const StudentDashboard = () => {
         <h1 className="text-4xl font-bold text-blue-800 mb-8">Student Dashboard</h1>
       </section>
 
-        {/* Search Section */}
-        <section className="bg-white p-4 mb-6 rounded-lg w-full">
-        <h2 className="text-2xl font-bold text-blue-500 mb-2">Search Semantic Scholar Papers</h2>
-        <form onSubmit={handleSearch}>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter keywords, author name, or topic"
-            className="border p-2 rounded mr-4"
-          />
-          <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded">
-            Search
-          </button>
-        </form>
-
-        {searchResults.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-xl font-bold">Search Results</h3>
-            <ul>
-              {searchResults.map((paper) => (
-                <li key={paper.paperId} className="mt-4 p-4 border rounded-lg shadow">
-                  <h4 className="text-lg font-bold">{paper.title}</h4>
-                  <p><b>Authors:</b> {paper.authors.map((author) => author.name).join(', ')}</p>
-                  <p><b>Year:</b> {paper.year}</p>
-                  <p><b>Venue:</b> {paper.venue}</p>
-                  <p><b>Abstract:</b> {paper.abstract}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
+        <section className='p-4 mb-6  text-blue-800'><BookSearch /></section>
+      
 
       <section className="bg-white p-4 mb-6 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
