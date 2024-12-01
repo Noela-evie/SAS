@@ -189,7 +189,7 @@ const StudentDashboard = () => {
       </section>
 
         <section className='p-4 mb-6  text-blue-800'><BookSearch /></section>
-      
+
 
       <section className="bg-white p-4 mb-6 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Assignments</h2>
@@ -221,11 +221,11 @@ const StudentDashboard = () => {
     {assignment.submission && (
       <div className="mt-4">
         <p>Submission: {assignment.submission.fileName}</p>
-        <button 
-          onClick={() => editSubmission(assignment._id)} 
+        <button
+          onClick={() => editSubmission(assignment._id)}
           className="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded"
-        > 
-          Edit Submission 
+        >
+          Edit Submission
         </button>
       </div>
     )}
@@ -254,7 +254,7 @@ const StudentDashboard = () => {
           ))}
         </div>
       </section>
-  
+
       <section className="bg-white p-4 mb-6">
         <h2 className="text-2xl font-bold text-blue-500 mb-2">Resources by Type</h2>
         <select

@@ -6,7 +6,7 @@ const profileApi = {
       const response = await axios.get(`/student/profile/${studentId}`);
       return response.data;
     },
-  
+
     getLecturerProfile: async (lecturerId) => {
       const response = await axios.get(`/lecturer/profile/${lecturerId}`);
       return response.data;
@@ -19,12 +19,12 @@ const studentApi = {
       const response = await axios.get(`/assignments/${course}`);
       return response.data;
     },
-  
+
     getSubmissionsByUser: async (studentId) => {
       const response = await axios.get(`/student/assignment-submissions/${studentId}`, studentId);
       return response.data;
     },
-  
+
     makeSubmission: async (assignmentId, studentId, formData) => {
       const response = await axios.post(`/student/submit-assignment/${assignmentId}/${studentId}`, formData, {
         headers: {
@@ -33,7 +33,7 @@ const studentApi = {
       });
       return response.data;
     },
-  
+
     makeGroupSubmission: async (assignmentId, studentId, formData) => {
       const response = await axios.post(`/group/submit-assignment/${assignmentId}/${studentId}`, formData);
       return response.data;
@@ -130,17 +130,17 @@ const studentApi = {
       const response = await axios.get('/admin/lecturers');
       return response.data;
     },
-  
+
     getUser: async (userId) => {
       const response = await axios.get(`/admin/user/${userId}`);
       return response.data;
     },
-  
+
     editUser: async (userId, userData) => {
       const response = await axios.patch(`/admin/edit-user/${userId}`, userData);
       return response.data;
     },
-  
+
     deleteUser: async (userId) => {
       const response = await axios.delete(`/admin/delete-user/${userId}`);
       return response.data;
@@ -158,9 +158,7 @@ const studentApi = {
       return response.data;
     },
   };
-  
-  
-  
+
   // Notifications
   const notificationApi = {
     getNotifications: async (studentId) => {
